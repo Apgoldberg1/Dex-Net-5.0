@@ -23,7 +23,7 @@ class ResNet18(nn.Module):
         
         return x
 
-class DexNet2(nn.Module):
+class DexNet3(nn.Module):
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7)

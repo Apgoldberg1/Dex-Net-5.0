@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from torch_dataset import Dex3Dataset
 import torch
 from torch.utils.data import DataLoader, random_split
-#from grasp_model import DexNet2 as Model
-from grasp_model import ResNet18 as Model
+from grasp_model import DexNet3 as Model
+#from grasp_model import ResNet18 as Model
 
 
 def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
@@ -58,22 +58,25 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.manual_seed(0)
 
-    dataset = Dex3Dataset(dataset_path, preload=True, num_files=2500, resize=True)
+    model = Model()
+    #model.load_state_dict(torch.load("model_zoo/epoch_19_DexNet.pth"))
+    model.load_state_dict(torch.load("epoch_19_DexNet.pth"))
+    model.to(device)
+
+    dataset = Dex3Dataset(dataset_path, preload=True, num_files=2500, resize=False)
 
     train_size = int(0.8 * len(dataset)) 
     val_size = len(dataset) - train_size
 
     train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+    val_dataset.dataset.transform = False
 
+    batch_size = 4096
 
+    #val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+    train_dataset.dataset.transform = False
+    val_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
-    batch_size = 1024
-
-    val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
-
-    model = Model()
-    model.load_state_dict(torch.load("model_zoo/resnet_fullpose1.pth"))
-    model.to(device)
 
     _, precisions, recalls = getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=30)
 

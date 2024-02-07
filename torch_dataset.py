@@ -6,7 +6,6 @@ from multiprocessing import Pool
 from torchvision import transforms
 
 
-dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
 
 
 def load_npz_file(info):
@@ -108,6 +107,7 @@ class Dex3Dataset(Dataset):
 
 def testLoader(num_files=100):
     from torch.utils.data import DataLoader
+    dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
     dataset = Dex3Dataset(dataset_path, preload=True, num_files=num_files)
 
     batch_size = 128

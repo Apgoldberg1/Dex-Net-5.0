@@ -1,0 +1,23 @@
+# quicktest.yaml
+
+name: "DexNet3"
+optimizer:
+  name: "SGD"
+  learning_rate: 0.001
+  momentum: .9
+  scheduler_gamma: .95
+training:
+  dataset_path: "dataset/dexnet_3/dexnet_09_13_17"
+  batch_size: 256
+  num_epochs: 1
+  num_files: 100
+  resize: false
+outputs:
+  save_directory: "outputs/quicktest_trash"
+  save_name: "quicktest_DexNet"
+  training_print_every: 100
+  val_print_every: 200
+  save_every_x_epoch: 10
+
+  
+

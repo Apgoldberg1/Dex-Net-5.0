@@ -4,20 +4,17 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from copy import copy
-#from grasp_model import DexNet2 as Model
-from grasp_model import ResNet18 as Model
+from grasp_model import DexNet3 as Model
+import os
+#from grasp_model import ResNet18 as Model
 
 
-dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
-device = "cuda" if torch.cuda.is_available() else "cpu"
-torch.manual_seed(0)
-num_epochs = 30
-batch_size = 4096
 
-
-def train():
-    for epoch in range(num_epochs):
-        tot_loss = 0.0
+def train(config):
+    save_name, save_directory = config["outputs"]["save_name"], config["outputs"]["save_directory"]
+    batch_size = config["training"]["batch_size"]
+    for epoch in range(config["training"]["num_epochs"]):
+        tot_loss, tot_preds = 0.0, 0
         for i, batch in enumerate(train_loader):
             depth_ims, pose, wrench_resistances = batch
             depth_ims, pose, wrench_resistances = depth_ims.to(device), pose.to(device), wrench_resistances.to(device)
@@ -32,23 +29,28 @@ def train():
             optimizer.step()
 
             tot_loss += loss.item()
+            tot_preds += len(pose)
 
-            if i % 50 == 49:
-                print("train_loss:", tot_loss / (50 * batch_size))
-                tot_loss = 0
+            train_print_freq, val_print_freq = config["outputs"]["training_print_every"], config["outputs"]["val_print_every"]
+            if i % train_print_freq == train_print_freq - 1:
+                print("train_loss:", tot_loss / (tot_preds / batch_size))
+                tot_loss, tot_preds = 0, 0
 
-                if i % 200 == 199:
-                    loss, correct, precision, recall = eval(model, val_loader, criterion, device)
-                    print("validation:", loss, "correct:", correct, "precision:", precision, "recall:", recall)
+            if i % val_print_freq == val_print_freq - 1:
+                loss, correct, precision, recall = eval(model, val_loader, criterion, device)
+                print("validation:", loss, "correct:", correct, "precision:", precision, "recall:", recall)
 
         print("epoch", epoch, "complete")
         scheduler.step()
-        torch.save(model.state_dict(), 'in_training2.pth')
+        if not os.path.exists(save_directory):
+                os.makedirs(save_directory)
+        torch.save(model.state_dict(), f"{save_directory}/{save_name}_in_training.pth")
 
-        if epoch % 10 == 9:
-            torch.save(model.state_dict(), f"epoch_{epoch}_save2")
+        save_every_x = config["outputs"]["save_every_x_epoch"]
+        if epoch % save_every_x == save_every_x - 1:
+            torch.save(model.state_dict(), f"{save_directory}/epoch_{epoch}_{save_name}")
 
-    torch.save(model.state_dict(), 'complete_training2.pth')
+    torch.save(model.state_dict(), f"{save_directory}/complete_training_{save_name}.pth")
 
 
 
@@ -67,7 +69,7 @@ def eval(model, val_loader, criterion, device):
             loss = criterion(outputs, wrench_resistances)
 
             tot_loss += loss.item()
-            tot_preds += len(batch)
+            tot_preds += len(pose)
 
             correct += (((outputs >= .2) & (wrench_resistances >= .2)) | 
                     ((outputs < .2) & (wrench_resistances < .2))).sum().item()
@@ -94,8 +96,26 @@ def getPrecisionRecall(outputs, wrench_resistances, thresh=.2):
 
 
 if __name__=="__main__":
+    from ruamel.yaml import YAML
+    from pathlib import Path
+    import argparse
+    parser = argparse.ArgumentParser(description='Process configuration file.')
+    parser.add_argument('--config', dest='config_file', metavar='CONFIG_FILE_PATH', type=str, required=True, help='Path to the config file')
+    args = parser.parse_args()
+    path_arg = args.config_file
+
+    config_path = Path(path_arg)
+    yaml = YAML(typ='safe')
+    config = yaml.load(config_path)
+
+    dataset_path = config["training"]["dataset_path"]
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.manual_seed(0)
-    dataset = Dex3Dataset(dataset_path, preload=True, num_files=2500, resize=False)
+    batch_size = config["training"]["batch_size"]
+
+    num_files, resize = config["training"]["num_files"], config["training"]["resize"]
+
+    dataset = Dex3Dataset(dataset_path, preload=True, num_files=num_files, resize=resize)
 
     train_size = int(0.8 * len(dataset)) 
     val_size = len(dataset) - train_size
@@ -109,11 +129,21 @@ if __name__=="__main__":
 
     model = Model()
 
-    optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=.9)
-    scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=.90)
+    lr, momentum = config["optimizer"]["learning_rate"], config["optimizer"]["momentum"]
+    gamma = config["optimizer"]["scheduler_gamma"]
+    optimizer_name = config["optimizer"]["name"]
+
+    if optimizer_name.lower() == "sgd":
+        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+    elif optimizer_name.lower() == "adam":
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+    else:
+        raise AssertionError("only [adam, sgd] supported as optimizers")
+
+    scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 
     criterion = nn.BCELoss()
 
     model.to(device)
 
-    train()
+    train(config)

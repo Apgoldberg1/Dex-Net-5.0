@@ -3,3 +3,5 @@
 dataset
 __pycache__
 *.jpg
+model_zoo
+outputs
