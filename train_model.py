@@ -12,7 +12,7 @@ dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 torch.manual_seed(0)
 num_epochs = 30
-batch_size = 2048
+batch_size = 4096
 
 
 def train():
@@ -43,12 +43,12 @@ def train():
 
         print("epoch", epoch, "complete")
         scheduler.step()
-        torch.save(model.state_dict(), 'in_training.pth')
+        torch.save(model.state_dict(), 'in_training2.pth')
 
         if epoch % 10 == 9:
-            torch.save(model.state_dict(), f"epoch_{epoch}_save")
+            torch.save(model.state_dict(), f"epoch_{epoch}_save2")
 
-    torch.save(model.state_dict(), 'complete_training.pth')
+    torch.save(model.state_dict(), 'complete_training2.pth')
 
 
 
@@ -109,7 +109,7 @@ if __name__=="__main__":
 
     model = Model()
 
-    optimizer = optim.SGD(model.parameters(), lr=1e-3)
+    optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=.9)
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=.90)
 
     criterion = nn.BCELoss()
