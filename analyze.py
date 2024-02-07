@@ -51,7 +51,7 @@ def plotPrecisionRecall(precisions, recalls):
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     
-    plt.savefig("plot.jpg")
+    plt.savefig("outputs/plot.jpg")
 
 if __name__ == "__main__":
     dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     model = Model()
     #model.load_state_dict(torch.load("model_zoo/epoch_19_DexNet.pth"))
-    model.load_state_dict(torch.load("epoch_19_DexNet.pth"))
+    model.load_state_dict(torch.load("complete_training_DexNet.pth"))
     model.to(device)
 
     dataset = Dex3Dataset(dataset_path, preload=True, num_files=2500, resize=False)

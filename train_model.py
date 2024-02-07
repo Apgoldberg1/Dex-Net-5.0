@@ -48,7 +48,7 @@ def train(config):
 
         save_every_x = config["outputs"]["save_every_x_epoch"]
         if epoch % save_every_x == save_every_x - 1:
-            torch.save(model.state_dict(), f"{save_directory}/epoch_{epoch}_{save_name}")
+            torch.save(model.state_dict(), f"{save_directory}/epoch_{epoch}_{save_name}.pth")
 
     torch.save(model.state_dict(), f"{save_directory}/complete_training_{save_name}.pth")
 
