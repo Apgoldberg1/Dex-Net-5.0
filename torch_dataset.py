@@ -8,7 +8,7 @@ from torchvision import transforms
 dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
 
 class Dex3Dataset(Dataset):
-    def __init__(self, dataset_path, preload=True, num_files=2759):
+    def __init__(self, dataset_path, preload=True, num_files=2759, resize=False):
         """
         dataset_path: uncompressed directory containing tensors folder
         preload: np.load all files upfront for faster performance
@@ -19,12 +19,14 @@ class Dex3Dataset(Dataset):
         self.dataset_path = dataset_path
         self.dataset_len = 1000 * (self.num_files)        #1000 per file, 2760 is not a full 1000, numbering starts at 0
         self.preload = preload
+        self.resize=resize
 
         self.transformations = transforms.Compose([
             transforms.RandomHorizontalFlip(),  # Random horizontal flipping
             transforms.RandomVerticalFlip(),    # Random vertical flipping
             transforms.RandomRotation(180),     # Random 180-degree rotation
         ])
+
 
         def preload(var):
             """
@@ -70,7 +72,10 @@ class Dex3Dataset(Dataset):
         depth_im_t = depth_im_t.reshape(1, 32, 32)
         depth_im_t = self.transformations(depth_im_t)
 
-        depth_im_t = transforms.Resize((224, 224), antialias=True)(depth_im_t)
+        depth_im_t = .005 * torch.randn_like(depth_im_t) + depth_im_t
+
+        if self.resize:
+            depth_im_t = transforms.Resize((224, 224), antialias=True)(depth_im_t)
         
 
         #depth_im_t = (depth_im_t - depth_im_t.mean()) / depth_im_t.std()
