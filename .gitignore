@@ -2,3 +2,4 @@
 *.npz
 dataset
 __pycache__
+*.jpg

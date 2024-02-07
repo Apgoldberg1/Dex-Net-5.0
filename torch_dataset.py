@@ -2,10 +2,16 @@ import torch
 from torch.utils.data import Dataset
 import numpy as np
 import time
+from multiprocessing import Pool
 from torchvision import transforms
 
 
 dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
+
+
+def load_npz_file(info):
+    dataset_path, var, file_num = info
+    return np.load(f"{dataset_path}/tensors/{var}_{str(file_num).zfill(5)}.npz")["arr_0"]
 
 class Dex3Dataset(Dataset):
     def __init__(self, dataset_path, preload=True, num_files=2759, resize=False):
@@ -21,11 +27,25 @@ class Dex3Dataset(Dataset):
         self.preload = preload
         self.resize=resize
 
+        self.transform = True
         self.transformations = transforms.Compose([
             transforms.RandomHorizontalFlip(),  # Random horizontal flipping
             transforms.RandomVerticalFlip(),    # Random vertical flipping
             transforms.RandomRotation(180),     # Random 180-degree rotation
         ])
+
+                
+        def multiProcessPreload(var):
+            """
+            var: camera_intrs, camera_poses, collistion_free, depths_ims_tf_table, grasp_ids, hand_poses, image_labels, obj_labels, obj_masks, pose_labels, robust_suction_wrench_resistance
+            """
+            assert var in ["camera_intrs", "camera_poses", "collistion_free", "depth_ims_tf_table", "grasp_ids", "hand_poses", "image_labels", "obj_labels", "obj_masks", "pose_labels", "robust_suction_wrench_resistance"]
+
+
+            infos = [(dataset_path, var, i) for i in range(self.num_files)]
+            with Pool(16) as pool:
+                results = pool.map(load_npz_file, infos)
+            return results
 
 
         def preload(var):
@@ -33,7 +53,7 @@ class Dex3Dataset(Dataset):
             var: camera_intrs, camera_poses, collistion_free, depths_ims_tf_table, grasp_ids, hand_poses, image_labels, obj_labels, obj_masks, pose_labels, robust_suction_wrench_resistance
             """
             assert var in ["camera_intrs", "camera_poses", "collistion_free", "depth_ims_tf_table", "grasp_ids", "hand_poses", "image_labels", "obj_labels", "obj_masks", "pose_labels", "robust_suction_wrench_resistance"]
-
+                
             return [
                 np.load(dataset_path + "/tensors/" + var + "_" + str(file_num).zfill(5) + ".npz")["arr_0"]
                 for file_num in range(self.num_files)
@@ -44,9 +64,9 @@ class Dex3Dataset(Dataset):
             start = time.time()
             print("STARTING PRELOAD")
 
-            self.depth_im_data = preload("depth_ims_tf_table")
-            self.grasp_metric_data = preload("robust_suction_wrench_resistance")
-            self.hand_poses = preload("hand_poses")
+            self.depth_im_data = multiProcessPreload("depth_ims_tf_table")
+            self.grasp_metric_data = multiProcessPreload("robust_suction_wrench_resistance")
+            self.hand_poses = multiProcessPreload("hand_poses")
 
             print("FINISIHED PRELOAD took:", time.time() - start)
 
@@ -70,9 +90,10 @@ class Dex3Dataset(Dataset):
 
         depth_im_t, hand_pose_t, grasp_metric_t = torch.tensor(depth_im), torch.tensor(hand_pose), torch.tensor(grasp_metric)
         depth_im_t = depth_im_t.reshape(1, 32, 32)
-        depth_im_t = self.transformations(depth_im_t)
 
-        depth_im_t = .005 * torch.randn_like(depth_im_t) + depth_im_t
+        if self.transform:
+            depth_im_t = self.transformations(depth_im_t)
+            depth_im_t = .005 * torch.randn_like(depth_im_t) + depth_im_t
 
         if self.resize:
             depth_im_t = transforms.Resize((224, 224), antialias=True)(depth_im_t)
@@ -101,7 +122,7 @@ def testLoader(num_files=100):
     print("time:", end)
 
 if __name__ == "__main__":
-    testLoader(10)
+    testLoader(1000)
     #var = "depth_ims_tf_table"
     #file_num = 15
     #out = np.load(dataset_path + "/tensors/" + var + "_" + str(file_num).zfill(5) + ".npz")["arr_0"]

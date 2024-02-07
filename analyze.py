@@ -1,8 +1,6 @@
 from train_model import getPrecisionRecall
 import torch
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 from torch_dataset import Dex3Dataset
@@ -16,7 +14,7 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
     model.eval()
     model.to(device)
     tot_preds = 0
-    tot_correct, tot_tp, tot_fp, tot_fn = np.zeros(threshold_res + 1), np.zeros(threshold_res + 1), np.zeros(threshold_res + 1), np.zeros(threshold_res + 1)
+    tot_correct, tot_tp, tot_fp, tot_fn = np.zeros(threshold_res + 2), np.zeros(threshold_res + 2), np.zeros(threshold_res + 2), np.zeros(threshold_res + 2)
 
     with torch.no_grad():
         for i, batch in enumerate(val_loader):
@@ -28,15 +26,15 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
 
             for j, thresh in enumerate(np.arange(0, 1 + (1 / threshold_res), 1 / threshold_res)):
                 tot_correct[j] += (((outputs >= thresh) & (wrench_resistances >= thresh)) | 
-                        ((outputs < thresh) & (wrench_resistances < thresh))).sum().item()
+                    ((outputs < thresh) & (wrench_resistances < thresh))).sum().item()
 
                 tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, thresh=thresh)
                 tot_tp[j], tot_fp[j], tot_fn[j] = tot_tp[j] + tp, tot_fp[j] + fp, tot_fn[j] + fn
 
             tot_preds += len(batch)
 
-        precision, recall = np.zeros(threshold_res + 1), np.zeros(threshold_res + 1)
-        for i in range(threshold_res + 1):
+        precision, recall = np.zeros(threshold_res + 2), np.zeros(threshold_res + 2)
+        for i in range(threshold_res + 2):
             tp, fp, fn = tot_tp[i], tot_fp[i], tot_fn[i]
 
             if tp == 0:
@@ -53,14 +51,14 @@ def plotPrecisionRecall(precisions, recalls):
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     
-    plt.show()
+    plt.savefig("plot.jpg")
 
 if __name__ == "__main__":
     dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.manual_seed(0)
 
-    dataset = Dex3Dataset(dataset_path, preload=True, num_files=25, resize=True)
+    dataset = Dex3Dataset(dataset_path, preload=True, num_files=2500, resize=True)
 
     train_size = int(0.8 * len(dataset)) 
     val_size = len(dataset) - train_size
@@ -69,7 +67,7 @@ if __name__ == "__main__":
 
 
 
-    batch_size = 8192
+    batch_size = 1024
 
     val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
@@ -77,6 +75,6 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load("model_zoo/resnet_fullpose1.pth"))
     model.to(device)
 
-    _, precisions, recalls = getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=5)
+    _, precisions, recalls = getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=30)
 
     plotPrecisionRecall(precisions, recalls)
