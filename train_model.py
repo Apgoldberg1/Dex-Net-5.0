@@ -39,13 +39,13 @@ def train(config):
             loss.backward()
             optimizer.step()
 
-            tot_loss += loss.item()
+            tot_loss += loss.item() * len(pose)
             tot_preds += len(pose)
 
             train_print_freq, val_print_freq = config["outputs"]["training_print_every"], config["outputs"]["val_print_every"]
             if i % train_print_freq == train_print_freq - 1:
-                print("train_loss:", tot_loss / (tot_preds / batch_size))
-                wandb.log({"train_loss": tot_loss / (tot_preds / batch_size)})
+                print("train_loss:", tot_loss / tot_preds)
+                wandb.log({"train_loss": tot_loss / tot_preds})
                 tot_loss, tot_preds = 0, 0
 
             if i % val_print_freq == val_print_freq - 1:
@@ -83,7 +83,7 @@ def eval(model, val_loader, criterion, device):
             outputs = model(depth_ims, pose)
             loss = criterion(outputs, wrench_resistances)
 
-            tot_loss += loss.item()
+            tot_loss += loss.item() * len(pose)
             tot_preds += len(pose)
 
             correct += (((outputs > .2) & (wrench_resistances > .2)) | 
@@ -94,7 +94,7 @@ def eval(model, val_loader, criterion, device):
 
 
     if tot_tp == 0:
-        precision, recall = 1, 0
+        precision, recall = 0, 0
     else:
         precision, recall = tot_tp / (tot_tp + tot_fp), tot_tp / (tot_tp + tot_fn)
 
