@@ -4,6 +4,7 @@ import numpy as np
 import time
 from multiprocessing import Pool
 from torchvision import transforms
+import math
 
 
 
@@ -27,12 +28,8 @@ class Dex3Dataset(Dataset):
         self.resize=resize
 
         self.transform = True
-        self.transformations = transforms.Compose([
-            transforms.RandomHorizontalFlip(),  # Random horizontal flipping
-            transforms.RandomVerticalFlip(),    # Random vertical flipping
-            transforms.RandomRotation(180),     # Random 180-degree rotation
-        ])
 
+        self.normalizers = (0.59784445, 0.00770147890625, 0.5667523, 0.06042659375, 0.360944025, 0.231009775)       #mean, std (x3) image, pose dist, pose angle
                 
         def multiProcessPreload(var):
             """
@@ -69,6 +66,37 @@ class Dex3Dataset(Dataset):
 
             print("FINISIHED PRELOAD took:", time.time() - start)
 
+    def transform_data(self, img, pose):
+        img = img.reshape(1, 32, 32)
+        img = (img - self.normalizers[0]) / self.normalizers[1]
+
+        if self.transform:
+            if np.random.rand() < .5:
+                pose[0], pose[1] = -pose[0], -pose[1]
+                img = transforms.functional.rotate(img, 180)
+
+            if np.random.rand() < .5:
+                pose[0], pose[1] = -pose[0], -pose[1]
+                img = transforms.functional.vflip(img)
+
+            if np.random.rand() < .5:
+                img = transforms.functional.hflip(img)
+
+            ###WARNING: doesn't flip pose labels
+            img = .005 * torch.randn_like(img) + img
+
+        if self.resize:
+            img = transforms.Resize((224, 224), antialias=True)(img)
+        
+
+        #apply normalizations
+        pose = pose.reshape(2)
+        pose[0], pose[1] = (pose[0] - math.copysign(1, pose[0]) * self.normalizers[2]) / self.normalizers[3], (pose[1] - math.copysign(1, pose[1]) * self.normalizers[4]) / self.normalizers[5]
+
+        return img, pose
+
+
+
     def __len__(self):
         return self.num_files * 1000
     
@@ -88,19 +116,8 @@ class Dex3Dataset(Dataset):
 
 
         depth_im_t, hand_pose_t, grasp_metric_t = torch.tensor(depth_im), torch.tensor(hand_pose), torch.tensor(grasp_metric)
-        depth_im_t = depth_im_t.reshape(1, 32, 32)
 
-        if self.transform:
-            depth_im_t = self.transformations(depth_im_t)
-            depth_im_t = .005 * torch.randn_like(depth_im_t) + depth_im_t
-
-        if self.resize:
-            depth_im_t = transforms.Resize((224, 224), antialias=True)(depth_im_t)
-        
-
-        #depth_im_t = (depth_im_t - depth_im_t.mean()) / depth_im_t.std()
-
-        hand_pose_t = hand_pose_t.reshape(2)
+        depth_im_t, hand_pose_t = self.transform_data(depth_im_t, hand_pose_t)
 
 
         return depth_im_t, hand_pose_t, grasp_metric_t

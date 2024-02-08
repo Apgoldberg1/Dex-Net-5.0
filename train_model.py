@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader, random_split
 from copy import copy
 from grasp_model import DexNet3 as Model
 import os
+import wandb
 #from grasp_model import ResNet18 as Model
 
 
@@ -13,8 +14,18 @@ import os
 def train(config):
     save_name, save_directory = config["outputs"]["save_name"], config["outputs"]["save_directory"]
     batch_size = config["training"]["batch_size"]
+    
+    if config["training"]["wandb"]:
+        #wandb.login()
+        run = wandb.init(
+            project="DexNet",
+            config=config,
+            name=config["outputs"]["save_name"],
+        )
+
     for epoch in range(config["training"]["num_epochs"]):
         tot_loss, tot_preds = 0.0, 0
+        model.train()
         for i, batch in enumerate(train_loader):
             depth_ims, pose, wrench_resistances = batch
             depth_ims, pose, wrench_resistances = depth_ims.to(device), pose.to(device), wrench_resistances.to(device)
@@ -34,11 +45,15 @@ def train(config):
             train_print_freq, val_print_freq = config["outputs"]["training_print_every"], config["outputs"]["val_print_every"]
             if i % train_print_freq == train_print_freq - 1:
                 print("train_loss:", tot_loss / (tot_preds / batch_size))
+                wandb.log({"train_loss": tot_loss / (tot_preds / batch_size)})
                 tot_loss, tot_preds = 0, 0
 
             if i % val_print_freq == val_print_freq - 1:
                 loss, correct, precision, recall = eval(model, val_loader, criterion, device)
                 print("validation:", loss, "correct:", correct, "precision:", precision, "recall:", recall)
+
+                if config["training"]["wandb"]:
+                    wandb.log({"validation": loss, "correct": correct, "precision": precision, "recall": recall})
 
         print("epoch", epoch, "complete")
         scheduler.step()
@@ -71,25 +86,27 @@ def eval(model, val_loader, criterion, device):
             tot_loss += loss.item()
             tot_preds += len(pose)
 
-            correct += (((outputs >= .2) & (wrench_resistances >= .2)) | 
-                    ((outputs < .2) & (wrench_resistances < .2))).sum().item()
+            correct += (((outputs > .2) & (wrench_resistances > .2)) | 
+                    ((outputs <= .2) & (wrench_resistances <= .2))).sum().item()
 
             tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, thresh=.2)
             tot_tp, tot_fp, tot_fn = tot_tp + tp, tot_fp + fp, tot_fn + fn
 
 
     if tot_tp == 0:
-        precision, recall = 0, 0
+        precision, recall = 1, 0
     else:
         precision, recall = tot_tp / (tot_tp + tot_fp), tot_tp / (tot_tp + tot_fn)
+
+    model.train()
 
     return tot_loss / tot_preds, correct / tot_preds, precision, recall
 
 
 def getPrecisionRecall(outputs, wrench_resistances, thresh=.2):
-    tp = ((outputs >= thresh) & (wrench_resistances >= .2)).sum().item()
-    fp = ((outputs >= thresh) & (wrench_resistances < .2)).sum().item()
-    fn = ((outputs < thresh) & (wrench_resistances >= .2)).sum().item()
+    tp = ((outputs > thresh) & (wrench_resistances > .2)).sum().item()
+    fp = ((outputs > thresh) & (wrench_resistances <= .2)).sum().item()
+    fn = ((outputs <= thresh) & (wrench_resistances > .2)).sum().item()
 
     return tp, fp, fn
 
@@ -129,14 +146,14 @@ if __name__=="__main__":
 
     model = Model()
 
-    lr, momentum = config["optimizer"]["learning_rate"], config["optimizer"]["momentum"]
+    lr, momentum, weight_decay = config["optimizer"]["learning_rate"], config["optimizer"]["momentum"], config["optimizer"]["weight_decay"]
     gamma = config["optimizer"]["scheduler_gamma"]
     optimizer_name = config["optimizer"]["name"]
 
     if optimizer_name.lower() == "sgd":
         optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
     elif optimizer_name.lower() == "adam":
-        optimizer = optim.Adam(model.parameters(), lr=lr)
+        optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     else:
         raise AssertionError("only [adam, sgd] supported as optimizers")
 

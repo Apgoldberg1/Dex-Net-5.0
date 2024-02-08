@@ -12,6 +12,7 @@ training:
   num_epochs: 1
   num_files: 100
   resize: false
+  wandb: false
 outputs:
   save_directory: "outputs/quicktest_trash"
   save_name: "quicktest_DexNet"
