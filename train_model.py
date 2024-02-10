@@ -4,10 +4,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from copy import copy
-from grasp_model import DexNet3 as Model
 import os
 import wandb
-#from grasp_model import ResNet18 as Model
 
 
 
@@ -34,7 +32,7 @@ def train(config):
 
             outs = model(depth_ims, pose)
 
-            loss = criterion(outs, (wrench_resistances >= .2).float())
+            loss = criterion(outs, (wrench_resistances > .2).float())
 
             loss.backward()
             optimizer.step()
@@ -124,6 +122,13 @@ if __name__=="__main__":
     config_path = Path(path_arg)
     yaml = YAML(typ='safe')
     config = yaml.load(config_path)
+
+    if config["model"].lower() == "dexnet3":
+        from grasp_model import DexNet3 as Model
+    elif config["model"].lower() == "resnet18":
+        from grasp_model import ResNet18 as Model
+    else:
+        raise AssertionError(f"{config["model"]} is not a model option, try dexnet3 or resnet18 instead)
 
     dataset_path = config["training"]["dataset_path"]
     device = "cuda" if torch.cuda.is_available() else "cpu"

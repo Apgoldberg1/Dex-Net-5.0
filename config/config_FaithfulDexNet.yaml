@@ -1,6 +1,7 @@
 # config_DexNet.yaml
 
 name: "FaithfulDexNet3"
+model: "dexnet3"
 optimizer:
   name: "SGD"
   learning_rate: 0.01

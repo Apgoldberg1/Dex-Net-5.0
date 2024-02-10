@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from torch_dataset import Dex3Dataset
 import torch
 from torch.utils.data import DataLoader, random_split
-from grasp_model import DexNet3 as Model
-#from grasp_model import ResNet18 as Model
+#from grasp_model import DexNet3 as Model
+from grasp_model import ResNet18 as Model
 
 
 def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
@@ -122,5 +122,10 @@ def dataStatsMain():
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Process configuration file.')
+    parser.add_argument('--model', dest='model', metavar='MODEL_PATH', type=str, required=True, help='Path to model file')
+    args = parser.parse_args()
+    model_path = args.model
     #dataStatsMain()
     precisionMain()

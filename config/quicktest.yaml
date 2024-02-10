@@ -1,6 +1,7 @@
 # quicktest.yaml
 
 name: "DexNet3"
+model: "resnet18"
 optimizer:
   name: "SGD"
   learning_rate: 0.001
