@@ -72,11 +72,11 @@ class Dex3Dataset(Dataset):
 
         if self.transform:
             if np.random.rand() < .5:
-                pose[0], pose[1] = -pose[0], -pose[1]
+                pose[1] = -pose[1]
                 img = transforms.functional.rotate(img, 180)
 
             if np.random.rand() < .5:
-                pose[0], pose[1] = -pose[0], -pose[1]
+                pose[1] = -pose[1]
                 img = transforms.functional.vflip(img)
 
             if np.random.rand() < .5:
