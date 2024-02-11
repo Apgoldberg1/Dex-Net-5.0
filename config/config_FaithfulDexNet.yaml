@@ -16,10 +16,10 @@ training:
   resize: false
   GT_threshold: 0.2
   wandb: true
-  ordered_split: true
+  ordered_split: false
 outputs:
   save_directory: "outputs/DexNet3"
-  save_name: "dex3_valfirst_newaug"
+  save_name: "dex3_newaug"
   training_print_every: 500
   val_print_every: 2000
   save_every_x_epoch: 10
