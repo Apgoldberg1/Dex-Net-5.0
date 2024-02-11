@@ -1,10 +1,12 @@
 import torch
 from torch.utils.data import Dataset
+import torch.nn.functional as F
 import numpy as np
 import time
 from multiprocessing import Pool
 from torchvision import transforms
 import math
+
 
 
 
@@ -39,7 +41,7 @@ class Dex3Dataset(Dataset):
 
 
             infos = [(dataset_path, var, i) for i in range(self.num_files)]
-            with Pool(16) as pool:
+            with Pool(6) as pool:
                 results = pool.map(load_npz_file, infos)
             return results
 
@@ -71,6 +73,16 @@ class Dex3Dataset(Dataset):
         img = (img - self.normalizers[0]) / self.normalizers[1]
 
         if self.transform:
+            gp_noise = torch.randn(8, 8) * .005
+
+            gp_noise = F.interpolate(gp_noise.unsqueeze(0).unsqueeze(0), 
+                                     scale_factor=4.0, 
+                                     mode='bicubic').squeeze()
+
+            # Add the noise to the image where pixel values are greater than 0
+            mask = (img > 0).float()
+            img = img + gp_noise * mask
+
             if np.random.rand() < .5:
                 pose[1] = -pose[1]
                 img = transforms.functional.rotate(img, 180)
@@ -82,8 +94,7 @@ class Dex3Dataset(Dataset):
             if np.random.rand() < .5:
                 img = transforms.functional.hflip(img)
 
-            ###WARNING: doesn't flip pose labels
-            img = .005 * torch.randn_like(img) + img
+            #img = .005 * torch.randn_like(img) + img
 
         if self.resize:
             img = transforms.Resize((224, 224), antialias=True)(img)

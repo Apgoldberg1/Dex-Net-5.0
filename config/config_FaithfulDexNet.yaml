@@ -4,7 +4,7 @@ name: "FaithfulDexNet3"
 model: "dexnet3"
 optimizer:
   name: "SGD"
-  learning_rate: 0.01
+  learning_rate: 0.005
   momentum: .9
   scheduler_gamma: .90   #original: .95, but orig does every .66 epoch
   weight_decay: .0005
@@ -16,11 +16,12 @@ training:
   resize: false
   GT_threshold: 0.2
   wandb: true
+  ordered_split: true
 outputs:
   save_directory: "outputs/DexNet3"
-  save_name: "FaithfulDexNet3_updatedaug"
-  training_print_every: 400
-  val_print_every: 1600
+  save_name: "dex3_valfirst_newaug"
+  training_print_every: 500
+  val_print_every: 2000
   save_every_x_epoch: 10
 
   

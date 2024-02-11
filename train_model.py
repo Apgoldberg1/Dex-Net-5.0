@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
+from torch.utils.data.sampler import SubsetRandomSampler
 from copy import copy
 import os
 import wandb
@@ -43,7 +44,9 @@ def train(config):
             train_print_freq, val_print_freq = config["outputs"]["training_print_every"], config["outputs"]["val_print_every"]
             if i % train_print_freq == train_print_freq - 1:
                 print("train_loss:", tot_loss / tot_preds)
-                wandb.log({"train_loss": tot_loss / tot_preds})
+                if config["training"]["wandb"]:
+                    wandb.log({"train_loss": tot_loss / tot_preds})
+
                 tot_loss, tot_preds = 0, 0
 
             if i % val_print_freq == val_print_freq - 1:
@@ -64,6 +67,8 @@ def train(config):
             torch.save(model.state_dict(), f"{save_directory}/epoch_{epoch}_{save_name}.pth")
 
     torch.save(model.state_dict(), f"{save_directory}/complete_training_{save_name}.pth")
+    if config["training"]["wandb"]:
+        wandb.finish()
 
 
 
@@ -128,7 +133,7 @@ if __name__=="__main__":
     elif config["model"].lower() == "resnet18":
         from grasp_model import ResNet18 as Model
     else:
-        raise AssertionError(f"{config["model"]} is not a model option, try dexnet3 or resnet18 instead)
+        raise AssertionError(f"{config['model']} is not a model option, try dexnet3 or resnet18 instead")
 
     dataset_path = config["training"]["dataset_path"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -142,12 +147,23 @@ if __name__=="__main__":
     train_size = int(0.8 * len(dataset)) 
     val_size = len(dataset) - train_size
 
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-    val_dataset.dataset = copy(dataset)
-    val_dataset.dataset.transform = False
+    if config["training"]["ordered_split"]:
+        train_sampler = SubsetRandomSampler(torch.arange(val_size, val_size + train_size))
+        val_sampler = SubsetRandomSampler(torch.arange(0, val_size))
 
-    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+        val_dataset = copy(dataset)
+        val_dataset.transform = False
+
+        train_loader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=4, sampler=train_sampler)
+        val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, num_workers=4, sampler=val_sampler)
+    else:
+        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+        val_dataset.dataset = copy(dataset)
+
+        val_dataset.dataset.transform = False
+
+        train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+        val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
     model = Model()
 

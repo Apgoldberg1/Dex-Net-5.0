@@ -7,6 +7,7 @@ optimizer:
   learning_rate: 0.001
   momentum: .9
   scheduler_gamma: .95
+  weight_decay: .0005
 training:
   dataset_path: "dataset/dexnet_3/dexnet_09_13_17"
   batch_size: 256
@@ -14,6 +15,7 @@ training:
   num_files: 100
   resize: false
   wandb: false
+  ordered_split: true
 outputs:
   save_directory: "outputs/quicktest_trash"
   save_name: "quicktest_DexNet"
