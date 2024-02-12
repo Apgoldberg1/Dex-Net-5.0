@@ -19,7 +19,7 @@ def save_ims(model, loader, loaderNoNormal, device, num_imgs = 1):
             break
         depth_ims, pose, wrench_resistances = batch
         for j, GT in enumerate(wrench_resistances):
-            if GT > .8:
+            if GT > .2:
                 break
         else:
             continue
@@ -27,15 +27,15 @@ def save_ims(model, loader, loaderNoNormal, device, num_imgs = 1):
         depth_ims, pose, wrench_resistances = depth_ims.to(device), pose.to(device), wrench_resistances.to(device)
 
         outs = model(depth_ims, pose)
-        #depth_ims, pose, wrench_resistances = depth_ims.to("cpu"), pose.to("cpu"), wrench_resistances.to("cpu")
-        depth_ims, pose, wrench_resistances = batchNoNormal
+        depth_ims, pose, wrench_resistances = depth_ims.to("cpu"), pose.to("cpu"), wrench_resistances.to("cpu")
+        #depth_ims, pose, wrench_resistances = batchNoNormal
 
 
 
         to_show = depth_ims[j]
         to_show = to_show.reshape(32, 32)
 
-        plt.imshow(to_show,  cmap='gray', vmin=0, vmax=1)
+        plt.imshow(to_show,  cmap='gray')
         plt.xlabel(f"Pred: {outs[j]:.3f} GT: {wrench_resistances[j]:.3f}")
         plt.savefig(f"outputs/img_true{i}.jpg")
         print(i)
@@ -62,8 +62,10 @@ if __name__ == "__main__":
     dataset = Dex3Dataset(dataset_path, preload=True, num_files=25, resize=resize)
     datasetNoNormal = Dex3Dataset(dataset_path, preload=True, num_files=25, resize=resize)
     datasetNoNormal.normalize = False
-    loader = DataLoader(dataset=dataset, batch_size=4096, shuffle=False)
-    loaderNoNormal = DataLoader(dataset=datasetNoNormal, batch_size=4096, shuffle=False)
+
+    batch_size = 256
+    loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
+    loaderNoNormal = DataLoader(dataset=datasetNoNormal, batch_size=batch_size, shuffle=False)
 
     save_ims(model, loader, loaderNoNormal, device, num_imgs=5)
 
