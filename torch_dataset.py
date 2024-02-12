@@ -30,6 +30,7 @@ class Dex3Dataset(Dataset):
         self.resize=resize
 
         self.transform = True
+        self.normalize = True
 
         self.normalizers = (0.59784445, 0.00770147890625, 0.5667523, 0.06042659375, 0.360944025, 0.231009775)       #mean, std (x3) image, pose dist, pose angle
                 
@@ -70,7 +71,8 @@ class Dex3Dataset(Dataset):
 
     def transform_data(self, img, pose):
         img = img.reshape(1, 32, 32)
-        img = (img - self.normalizers[0]) / self.normalizers[1]
+        if self.normalize:
+            img = (img - self.normalizers[0]) / self.normalizers[1]
 
         if self.transform:
             gp_noise = torch.randn(8, 8) * .005
@@ -102,7 +104,9 @@ class Dex3Dataset(Dataset):
 
         #apply normalizations
         pose = pose.reshape(2)
-        pose[0], pose[1] = (pose[0] - math.copysign(1, pose[0]) * self.normalizers[2]) / self.normalizers[3], (pose[1] - math.copysign(1, pose[1]) * self.normalizers[4]) / self.normalizers[5]
+
+        if self.normalize:
+            pose[0], pose[1] = (pose[0] - math.copysign(1, pose[0]) * self.normalizers[2]) / self.normalizers[3], (pose[1] - math.copysign(1, pose[1]) * self.normalizers[4]) / self.normalizers[5]
 
         return img, pose
 

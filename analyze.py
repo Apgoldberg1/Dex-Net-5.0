@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from torch_dataset import Dex3Dataset
-import torch
 from torch.utils.data import DataLoader, random_split
 from torch.utils.data.sampler import SubsetRandomSampler
 from copy import copy
@@ -143,11 +142,11 @@ if __name__ == "__main__":
     model_name = args.model_name
     if model_name.lower() == "dexnet3":
         from grasp_model import DexNet3 as Model
-        getModelSummary()
+        #getModelSummary()
     elif model_name.lower() == "resnet18":
         from grasp_model import ResNet18 as Model
     else:
         raise AssertionError("model_name arg is not supported")
 
     #dataStatsMain()
-    #precisionMain(model_path, ordered_split=True)
+    precisionMain(model_path, ordered_split=True)
