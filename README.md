@@ -13,7 +13,21 @@ git clone https://github.com/BerkeleyAutomation/dexnew.git
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 View PyTorch's [Getting Started Page](https://pytorch.org/get-started/locally/) for other insallation options
-Optionally for [Weights and Biases](https://wandb.ai/site) logging:
+
+Optionally for [Weights and Biases](https://wandb.ai/site) logging
 ```
 pip install wandb
 ```
+Set wandb to false in the YAML config to disable logging.
+
+# Code Breakdown
+
+## train_model.py
+
+Runs train eval loop based on the given config.
+
+```
+python3 train_model.py --config PATH_TO_DESIRED_CONFIG_FILE
+```
+
+
