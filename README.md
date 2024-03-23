@@ -20,6 +20,8 @@ pip install wandb
 ```
 Set wandb to false in the YAML config to disable logging.
 
+The dataset can be downloaded [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
+
 ## Code Breakdown
 
 ### train_model.py
