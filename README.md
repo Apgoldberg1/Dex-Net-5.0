@@ -20,9 +20,9 @@ pip install wandb
 ```
 Set wandb to false in the YAML config to disable logging.
 
-# Code Breakdown
+## Code Breakdown
 
-## train_model.py
+### train_model.py
 
 Runs train eval loop based on the given config.
 
@@ -30,20 +30,19 @@ Runs train eval loop based on the given config.
 python3 train_model.py --config PATH_TO_DESIRED_CONFIG_FILE
 ```
 
-## grasp_model.py
+### analyze.py
+
+For model benchmarks. Generates precision recall curve, inference speed timings, and mean and std over the datset.
+
+### grasp_model.py
 
 Defines models to be used in train_model.py
 
 The DexNet3 is an implementation of the model described in [Dex-Net 3.0](https://arxiv.org/abs/1709.06670) and provides the best performance.
 
-## torch_dataset.py
+### torch_dataset.py
 
 Provides PyTorch dataset to load the Dex-Net 3.0 dataset efficiently
-
-## analyze.py
-
-For model benchmarks. Generates precision recall curve, inference speed timings, and mean and std over the datset.
-
 ```
 python3 analyze.py --model_file PATH_TO_MODEL_WEIGHTS --model_name dexnet3
 ```
