@@ -1,0 +1,14 @@
+[project]
+name = "dexnew"
+version = "0.1.0"
+
+dependencies=[
+    "wandb",
+    "torchinfo",
+    "ruamel.yaml",
+    "torch",
+    "torchvision"
+]
+
+[tool.setuptools.packages.find]
+include = ["dexnew"]
