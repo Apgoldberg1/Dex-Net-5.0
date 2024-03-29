@@ -23,6 +23,21 @@ class ResNet18(nn.Module):
         
         return x
 
+class fakeSuctionFCGQCNN(nn.Module):
+    def __init__(self, suctionModel):
+        super().__init__()
+        self.gqcnn = suctionModel
+
+    def forward(self, x, z):
+        heatmap = torch.zeros_like(x)
+
+        for i in range(x.shape[2] - 32):
+            for j in range(x.shape[3] - 32):
+                depth = x[:, :, i:i + 32, j:j + 32]
+                heatmap[:, :, i + 16, j + 16] = self.gqcnn(depth, z)
+
+        return heatmap
+
 class DexNet3(nn.Module):
     def __init__(self):
         super().__init__()
