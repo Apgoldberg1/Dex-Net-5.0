@@ -7,7 +7,7 @@ Codebase to train on the Dex-Net 3.0 suction grasp dataset. Model takes 32x32 de
 
 [Dex-Net Package GitHub](https://github.com/BerkeleyAutomation/dex-net)
 
-## Project Setup (Conda)
+## Project Setup
 ```
 git clone https://github.com/BerkeleyAutomation/dexnew.git
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
