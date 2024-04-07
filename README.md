@@ -1,5 +1,5 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
-Codebase to train on the Dex-Net 3.0 suction grasp dataset. Model takes 32x32 depth image as input and outputs predicted grasp quality.
+Codebase to train on the Dex-Net 3.0 suction grasp dataset. The model takes cropped 32x32 depth images as input and outputs predicted grasp quality.
 ## Original Work
 [Dex-Net Project Website](https://berkeleyautomation.github.io/dex-net/)
 
@@ -21,7 +21,7 @@ pip install wandb
 Set wandb to false in the YAML config to disable logging.
 
 The dataset can be downloaded [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
-Dex-Net 3.0 model weights can be dowloaded [here](https://drive.google.com/file/d/1dSHhD0lbySvPZGPN8XJbh9aCcJcWVJ1s/view?usp=sharing)
+Dex-Net 3.0 suction grasp model weights can be dowloaded [here](https://drive.google.com/file/d/1dSHhD0lbySvPZGPN8XJbh9aCcJcWVJ1s/view?usp=sharing)
 
 ## Code Breakdown
 
