@@ -6,3 +6,4 @@ __pycache__
 model_zoo
 outputs
 wandb
+*.egg-info/
