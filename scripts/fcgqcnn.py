@@ -1,8 +1,9 @@
 import torch
 import numpy as np
 import math
-from grasp_model import fakeSuctionFCGQCNN as FCGQCNN
-from grasp_model import DexNet3
+from dexnew.grasp_model import fakeSuctionFCGQCNN
+from dexnew.grasp_model import DexNet3FCGQCNN as FCGQCNN
+from dexnew.grasp_model import DexNet3
 import matplotlib.pyplot as plt
 import cv2
 
@@ -12,12 +13,16 @@ depth_im = "test_data/depth/np_10.npy"
 x = np.load(depth_im)
 #x = x["arr_0"][0]
 
-model_weights = "test_data/model_w/best_replica.pth"
+model_weights_path = "model_zoo/fcgqcnn_conversion.pt"
+dexnet3_weights_path = "model_zoo/just_image.pth"
 
 gqcnn = DexNet3()
-gqcnn.load_state_dict(torch.load(model_weights))
+gqcnn.load_state_dict(torch.load(dexnet3_weights_path))
+fake_model = fakeSuctionFCGQCNN(gqcnn)
 
-fcgqcnn = FCGQCNN(gqcnn).to("cuda")
+
+fcgqcnn = FCGQCNN()
+fcgqcnn.load_state_dict(torch.load(model_weights_path))
 
 
 def norm_clip_depth(depth_img):
@@ -46,7 +51,7 @@ def norm_data(img, pose):
 
     img = cv2.dilate(img, kernel, iterations=1)
     img = cv2.GaussianBlur(img, (15, 15), 5)
-    img = cv2.resize(img, (50, 50))
+    img = cv2.resize(img, (40, 40))
     #img = cv2.resize(img, (195, 263))
     #img = img[50:150, 50:200]
 
@@ -72,7 +77,9 @@ x_show = x
 _, z = norm_data(x_show, z)
 x = (x - x.mean()) / x.std()
 x = cv2.resize(x, (40, 40))
-x_show = x
+
+pad = 15
+x = cv2.copyMakeBorder(x, pad, pad, pad, pad, cv2.BORDER_REPLICATE)
 x = x.squeeze()
 
 x = torch.tensor(x, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
@@ -80,23 +87,32 @@ x, z = x.to("cuda"), z.to("cuda")
 z = z.unsqueeze(0)
 
 fcgqcnn.eval()
+fcgqcnn.to("cuda")
+fake_model.eval()
+fake_model.to("cuda")
 with torch.no_grad():
-    output = fcgqcnn(x, z)
+    output = fcgqcnn(x)
+    output_fake = fake_model(x)
 
 print(torch.max(output))
+print(torch.max(output_fake))
 output = output.to("cpu")
+output_fake = output_fake.to("cpu")
+print(output.shape, output_fake.shape)
 torch.save(output.numpy(), "test_data/outputs/out.npy")
 
-fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+fig, axes = plt.subplots(1, 3, figsize=(10, 8))
 
 axes[0].imshow(output.numpy().squeeze(), cmap="gray")
+#axes[0].imshow(output.numpy(), cmap="gray")
 axes[0].axis('off')
 
-axes[1].imshow(x_show.squeeze(), cmap="gray")
+axes[1].imshow(output_fake.numpy().squeeze(), cmap="gray")
 axes[1].axis('off')
+
+axes[2].imshow(x_show.squeeze(), cmap="gray")
+axes[2].axis('off')
 
 plt.tight_layout()
 plt.show()
 
-#plt.imshow(output.numpy().squeeze(), cmap="gray")
-#plt.show()
