@@ -62,6 +62,8 @@ class Dex3Dataset(Dataset):
         start = time.time()
         self.depth_im_data = self._get_data("depth_ims_tf_table")
         self.grasp_metric_data = self._get_data("robust_suction_wrench_resistance")
+
+        self.pos_idx = self.grasp_metric_data >= .2     #TODO make this based on the parameter in the config
         print(f"Loaded data in {(time.time() - start):.2f} seconds.")
 
         # Misc data shape checks.
@@ -102,6 +104,7 @@ class Dex3Dataset(Dataset):
                 range(self.num_files),
             )
         data = torch.from_numpy(np.concatenate(list(data)))
+
         return data
 
     def preprocess(

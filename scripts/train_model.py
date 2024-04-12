@@ -1,10 +1,10 @@
-from dexnew.torch_dataset import Dex3Dataset
+from dexnet.torch_dataset import Dex3Dataset
 from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
-from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler, WeightedRandomSampler
 from copy import copy
 import os
 import wandb
@@ -22,7 +22,7 @@ def train(config):
         run = wandb.init(
             project="DexNet",
             config=config,
-            name="zero_both_3",#config["outputs"]["save_name"],
+            name=config["outputs"]["save_name"],
         )
 
     for epoch in range(config["training"]["num_epochs"]):
@@ -64,14 +64,7 @@ def train(config):
                     model, val_loader, criterion, device
                 )
                 print(
-                    "validation:",
-                    loss,
-                    "correct:",
-                    correct,
-                    "precision:",
-                    precision,
-                    "recall:",
-                    recall,
+                    f"validation: {loss}, correct: {correct}, precision: {precision}, recall: {recall}"
                 )
 
                 if config["training"]["wandb"]:
@@ -181,9 +174,9 @@ if __name__ == "__main__":
     config = yaml.load(config_path)
 
     if config["model"].lower() == "dexnet3":
-        from dexnew.grasp_model import DexNet3 as Model
+        from dexnet.grasp_model import DexNet3 as Model
     elif config["model"].lower() == "resnet18":
-        from dexnew.grasp_model import ResNet18 as Model
+        from dexnet.grasp_model import ResNet18 as Model
     else:
         raise AssertionError(
             f"{config['model']} is not a model option, try dexnet3 or resnet18 instead"
@@ -194,8 +187,6 @@ if __name__ == "__main__":
     torch.manual_seed(0)
     batch_size = config["training"]["batch_size"]
 
-    num_files, resize = config["training"]["num_files"], config["training"]["resize"]
-
     dataset = Dex3Dataset(
         Path(dataset_path)
     )
@@ -204,9 +195,18 @@ if __name__ == "__main__":
     val_size = len(dataset) - train_size
 
     if config["training"]["ordered_split"]:
-        train_sampler = SubsetRandomSampler(
-            torch.arange(val_size, val_size + train_size)
+        # train_sampler = SubsetRandomSampler(
+        #     torch.arange(val_size, val_size + train_size)
+        # )
+        sample_weights = torch.zeros_like(dataset.pos_idx, dtype=torch.float)
+        sample_weights[dataset.pos_idx] = 10
+        sample_weights[~dataset.pos_idx] = 1
+        sample_weights[:val_size] = 0
+        train_sampler = WeightedRandomSampler(
+            sample_weights, len(sample_weights), replacement=True
         )
+
+
         val_sampler = SubsetRandomSampler(torch.arange(0, val_size))
 
         val_dataset = copy(dataset)

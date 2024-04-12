@@ -12,14 +12,13 @@ training:
   dataset_path: "dataset/dexnet_3/dexnet_09_13_17"
   batch_size: 256
   num_epochs: 25
-  num_files: 2500
   resize: false
   GT_threshold: 0.2
   wandb: true
-  ordered_split: false
+  ordered_split: true
 outputs:
   save_directory: "outputs/DexNet3"
-  save_name: "dex3_newaug"
+  save_name: "dex3_class_imbalance"
   training_print_every: 500
   val_print_every: 2000
   save_every_x_epoch: 10

@@ -1,5 +1,5 @@
-from dexnew.grasp_model import DexNet3 as model
-from dexnew.grasp_model import DexNet3FCGQCNN as FCGQCNN
+from dexnet.grasp_model import DexNet3 as model
+from dexnet.grasp_model import DexNet3FCGQCNN as FCGQCNN
 from pathlib import Path
 import torch
 
