@@ -64,18 +64,14 @@ class DexNet3(nn.Module):
         )
         self.lrn = nn.LocalResponseNorm(size=2, alpha=2.0e-05, beta=0.75, k=1.0)
         self.fc = nn.Linear(16384, 1024)
-
-        self.z_fc = nn.Linear(2, 16)
-
-        self.fc2 = nn.Linear(1024 + 16, 1024)
+        self.fc2 = nn.Linear(1024, 1024)
         self.fc3 = nn.Linear(1024, 2)
 
         self.softmax = nn.Softmax()
 
-    def forward(self, x, z):
+    def forward(self, x):
         """
         x: (batch, 1, 32, 32) depth images
-        z: (batch, 2) gripper distance from camera, effector angle
         """
         x = self.conv1(x)
         x = self.relu(x)
@@ -90,12 +86,6 @@ class DexNet3(nn.Module):
         x = self.lrn(x)
         x = x.view(x.size(0), -1)  # Flatten the output
         x = self.fc(x)
-
-        z = self.z_fc(z)
-        z = self.relu(z)
-
-        x = torch.concat((x, z), dim=-1)
-
         x = self.fc2(x)
         x = self.relu(x)
         x = self.fc3(x)

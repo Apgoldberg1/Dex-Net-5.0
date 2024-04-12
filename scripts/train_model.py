@@ -1,4 +1,5 @@
 from dexnew.torch_dataset import Dex3Dataset
+from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -21,31 +22,31 @@ def train(config):
         run = wandb.init(
             project="DexNet",
             config=config,
-            name=config["outputs"]["save_name"],
+            name="zero_both_3",#config["outputs"]["save_name"],
         )
 
     for epoch in range(config["training"]["num_epochs"]):
         tot_loss, tot_preds = 0.0, 0
+        min_valid_loss = 99999.9
         model.train()
         for i, batch in enumerate(train_loader):
-            depth_ims, pose, wrench_resistances = batch
-            depth_ims, pose, wrench_resistances = (
+            depth_ims, wrench_resistances = batch
+            depth_ims, wrench_resistances = (
                 depth_ims.to(device),
-                pose.to(device),
                 wrench_resistances.to(device),
             )
 
             optimizer.zero_grad()
 
-            outs = model(depth_ims, pose)
+            outs = model(depth_ims)
 
             loss = criterion(outs, (wrench_resistances > 0.2).float())
 
             loss.backward()
             optimizer.step()
 
-            tot_loss += loss.item() * len(pose)
-            tot_preds += len(pose)
+            tot_loss += loss.item() * len(depth_ims)
+            tot_preds += len(depth_ims)
 
             train_print_freq, val_print_freq = (
                 config["outputs"]["training_print_every"],
@@ -83,6 +84,12 @@ def train(config):
                         }
                     )
 
+                if loss < min_valid_loss:
+                    torch.save(
+                        model.state_dict(), f"{save_directory}/best_valid_{save_name}.pth"
+                    )
+                    min_valid_loss = loss
+
         print("epoch", epoch, "complete")
         scheduler.step()
         if not os.path.exists(save_directory):
@@ -110,18 +117,17 @@ def eval(model, val_loader, criterion, device):
 
     with torch.no_grad():
         for i, batch in enumerate(val_loader):
-            depth_ims, pose, wrench_resistances = batch
-            depth_ims, pose, wrench_resistances = (
+            depth_ims, wrench_resistances = batch
+            depth_ims, wrench_resistances = (
                 depth_ims.to(device),
-                pose.to(device),
                 wrench_resistances.to(device),
             )
 
-            outputs = model(depth_ims, pose)
+            outputs = model(depth_ims)
             loss = criterion(outputs, wrench_resistances)
 
-            tot_loss += loss.item() * len(pose)
-            tot_preds += len(pose)
+            tot_loss += loss.item() * len(depth_ims)
+            tot_preds += len(depth_ims)
 
             correct += (
                 (
@@ -191,7 +197,7 @@ if __name__ == "__main__":
     num_files, resize = config["training"]["num_files"], config["training"]["resize"]
 
     dataset = Dex3Dataset(
-        dataset_path, preload=True, num_files=num_files, resize=resize
+        Path(dataset_path)
     )
 
     train_size = int(0.8 * len(dataset))

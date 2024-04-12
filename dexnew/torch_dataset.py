@@ -40,11 +40,7 @@ class Dex3Dataset(Dataset):
     normalizers = (
         0.59784445,
         0.00770147890625,
-        0.5667523,
-        0.06042659375,
-        0.360944025,
-        0.231009775,
-    )  # mean, std (x3) image, pose dist, pose angle
+    )  # mean, std value for depth images (from analyze.py script)
 
     def __init__(self, dataset_path: Path):
         """
@@ -66,21 +62,18 @@ class Dex3Dataset(Dataset):
         start = time.time()
         self.depth_im_data = self._get_data("depth_ims_tf_table")
         self.grasp_metric_data = self._get_data("robust_suction_wrench_resistance")
-        self.hand_poses = self._get_data("hand_poses")
         print(f"Loaded data in {(time.time() - start):.2f} seconds.")
 
         # Misc data shape checks.
         assert (
             self.depth_im_data.shape[0]
             == self.grasp_metric_data.shape[0]
-            == self.hand_poses.shape[0]
         ), "Data shapes do not match (batch size mismatch)."
         assert self.depth_im_data.shape[1:] == (
             32,
             32,
             1,
         ), "Depth image shape mismatch."
-        assert self.hand_poses.shape[1] == 7, "Hand pose shape mismatch."
 
         # Calculate dataset length.
         self.dataset_len = self.depth_im_data.shape[0]
@@ -112,14 +105,12 @@ class Dex3Dataset(Dataset):
         return data
 
     def preprocess(
-        self, img: torch.Tensor, pose: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        self, img: torch.Tensor
+    ) -> torch.Tensor:
         """
-        Preprocesses the image and pose data, for training.
-        Image and pose must be processed together, to ensure consistency during image augmentation.
+        Preprocesses the image for training.
         """
         assert len(img.shape) == 3, "Image shape must be (H, W, C)."
-        assert pose.shape[0] == 2, "Pose shape must be (2,)."
 
         img = img.permute(2, 0, 1).float()  # (H, W, C) -> (C, H, W)
 
@@ -140,11 +131,9 @@ class Dex3Dataset(Dataset):
         # Image augmentation.
         # Randomly rotate image by 180 degrees...
         if np.random.rand() < 0.5:
-            pose[1] = -pose[1]
             img = transforms.functional.rotate(img, 180)
         # Randomly flip the image...
         if np.random.rand() < 0.5:
-            pose[1] = -pose[1]
             img = transforms.functional.vflip(img)
         if np.random.rand() < 0.5:
             img = transforms.functional.hflip(img)
@@ -152,11 +141,7 @@ class Dex3Dataset(Dataset):
         # Resize image to 224x224.
         # img = transforms.Resize((224, 224), antialias=True)(img)  # This is expensive, too.
 
-        # Normalize pose data.
-        pose[0] = (pose[0] - pose[0].sign() * self.normalizers[2]) / self.normalizers[3]
-        pose[1] = (pose[1] - pose[1].sign() * self.normalizers[4]) / self.normalizers[5]
-
-        return img, pose
+        return img
 
     def __len__(self):
         """
@@ -167,22 +152,14 @@ class Dex3Dataset(Dataset):
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         """
-        Load data! Returns a dictionary with keys: depth_im, hand_pose, grasp_metric.
-        TODO(cmk): Figure out what `hand_pose` does.
+        Load data! Returns a dictionary with keys: depth_im, grasp_metric.
         """
         depth_im = self.depth_im_data[idx]
         grasp_metric = self.grasp_metric_data[idx]
-        hand_pose = self.hand_poses[idx][
-            2:4
-        ]  # we only want the third column which is z
 
-        depth_im, hand_pose = self.preprocess(depth_im, hand_pose)
+        depth_im = self.preprocess(depth_im)
 
-        return {
-            "depth_im": depth_im,
-            "hand_pose": hand_pose,
-            "grasp_metric": grasp_metric,
-        }
+        return depth_im, grasp_metric
 
 
 def testLoader():
