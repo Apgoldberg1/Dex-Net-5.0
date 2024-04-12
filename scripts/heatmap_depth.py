@@ -1,5 +1,5 @@
 import torch
-from dexnew.grasp_model import fakeSuctionFCGQCNN as FCGQCNN, DexNet3
+from dexnet.grasp_model import fakeSuctionFCGQCNN as FCGQCNN, DexNet3
 import glob
 import cv2
 import os

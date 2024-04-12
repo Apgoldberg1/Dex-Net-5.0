@@ -1,5 +1,5 @@
 [project]
-name = "dexnew"
+name = "dexnet"
 version = "0.1.0"
 
 dependencies=[
@@ -7,8 +7,11 @@ dependencies=[
     "torchinfo",
     "ruamel.yaml",
     "torch",
-    "torchvision"
+    "torchvision",
+    "tyro",
+    "opencv-python",
+    "matplotlib"
 ]
 
 [tool.setuptools.packages.find]
-include = ["dexnew"]
+include = ["dexnet"]

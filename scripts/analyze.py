@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from dexnew.torch_dataset import Dex3Dataset
+from dexnet.torch_dataset import Dex3Dataset
 from torch.utils.data import DataLoader, random_split
 from torch.utils.data.sampler import SubsetRandomSampler
 from copy import copy

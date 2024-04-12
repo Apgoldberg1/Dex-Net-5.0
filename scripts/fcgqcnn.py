@@ -1,9 +1,9 @@
 import torch
 import numpy as np
 import math
-from dexnew.grasp_model import fakeSuctionFCGQCNN
-from dexnew.grasp_model import DexNet3FCGQCNN as FCGQCNN
-from dexnew.grasp_model import DexNet3
+from dexnet.grasp_model import fakeSuctionFCGQCNN
+from dexnet.grasp_model import DexNet3FCGQCNN as FCGQCNN
+from dexnet.grasp_model import DexNet3
 import matplotlib.pyplot as plt
 import cv2
 

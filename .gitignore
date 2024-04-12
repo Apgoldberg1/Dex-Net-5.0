@@ -7,3 +7,5 @@ model_zoo
 outputs
 wandb
 *.egg-info/
+test_data
+
