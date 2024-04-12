@@ -195,16 +195,18 @@ if __name__ == "__main__":
     val_size = len(dataset) - train_size
 
     if config["training"]["ordered_split"]:
-        # train_sampler = SubsetRandomSampler(
-        #     torch.arange(val_size, val_size + train_size)
-        # )
-        sample_weights = torch.zeros_like(dataset.pos_idx, dtype=torch.float)
-        sample_weights[dataset.pos_idx] = config["training"]["pos_weight"]
-        sample_weights[~dataset.pos_idx] = 1
-        sample_weights[:val_size] = 0
-        train_sampler = WeightedRandomSampler(
-            sample_weights, len(sample_weights), replacement=True
-        )
+        if config["training"]["pos_weight"] == 1:
+            train_sampler = SubsetRandomSampler(
+                torch.arange(val_size, val_size + train_size)
+            )
+        else:
+            sample_weights = torch.zeros_like(dataset.pos_idx, dtype=torch.float)
+            sample_weights[dataset.pos_idx] = config["training"]["pos_weight"]
+            sample_weights[~dataset.pos_idx] = 1
+            sample_weights[:val_size] = 0
+            train_sampler = WeightedRandomSampler(
+                sample_weights, len(sample_weights), replacement=True
+            )
 
 
         val_sampler = SubsetRandomSampler(torch.arange(0, val_size))
