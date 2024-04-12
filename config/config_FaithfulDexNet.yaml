@@ -16,6 +16,7 @@ training:
   GT_threshold: 0.2
   wandb: true
   ordered_split: true
+  pos_weigh: 4
 outputs:
   save_directory: "outputs/DexNet3"
   save_name: "dex3_class_imbalance"

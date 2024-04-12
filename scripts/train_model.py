@@ -199,7 +199,7 @@ if __name__ == "__main__":
         #     torch.arange(val_size, val_size + train_size)
         # )
         sample_weights = torch.zeros_like(dataset.pos_idx, dtype=torch.float)
-        sample_weights[dataset.pos_idx] = 10
+        sample_weights[dataset.pos_idx] = config["training"]["pos_weight"]
         sample_weights[~dataset.pos_idx] = 1
         sample_weights[:val_size] = 0
         train_sampler = WeightedRandomSampler(
