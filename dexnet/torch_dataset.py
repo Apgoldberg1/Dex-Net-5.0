@@ -98,9 +98,14 @@ class Dex3Dataset(Dataset):
         def key_to_npz(key: DEXNET_3_KEYS, idx: int) -> str:
             return f"{self.dataset_path}/tensors/{key}_{str(idx).zfill(5)}.npz"
 
-        with ThreadPoolExecutor() as executor:
+        def loader(idx):
+            with np.load(key_to_npz(key, idx)) as x:
+                arr = x["arr_0"]
+            return arr
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
             data = executor.map(
-                lambda idx: np.load(key_to_npz(key, idx))["arr_0"],
+                lambda idx: loader(idx),
                 range(self.num_files),
             )
         data = torch.from_numpy(np.concatenate(list(data)))
