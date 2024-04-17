@@ -10,7 +10,8 @@ dependencies=[
     "torchvision",
     "tyro",
     "opencv-python",
-    "matplotlib"
+    "matplotlib",
+    "tqdm",
 ]
 
 [tool.setuptools.packages.find]
