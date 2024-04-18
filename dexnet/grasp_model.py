@@ -1,7 +1,3 @@
-"""
-Model for DexNet3.
-"""
-
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -31,6 +27,9 @@ class ResNet18(nn.Module):
         return x
 
 class fakeSuctionFCGQCNN(nn.Module):
+    """
+    Takes gqcnn model as input. Runs it on all 32x32 crops and returns a heatmap of grasp confidences.
+    """
     def __init__(self, suctionModel):
         super().__init__()
         self.gqcnn = suctionModel
@@ -120,7 +119,7 @@ class DexNet3FCGQCNN(nn.Module):
 
     def forward(self, x):
         """
-        x: (batch, 1, 32, 32) depth images
+        x: (batch, 1, x, y) depth images
         """
         x = self.conv1(x)
         x = self.relu(x)
