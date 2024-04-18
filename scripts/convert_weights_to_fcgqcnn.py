@@ -1,3 +1,6 @@
+"""
+Takes in gqcnn checkpoint. Converts and saves an FCGQCNN checkpoint
+"""
 from dexnet.grasp_model import DexNet3 as model
 from dexnet.grasp_model import DexNet3FCGQCNN as FCGQCNN
 from pathlib import Path
@@ -23,15 +26,9 @@ def convert_model(path: Path):
 
     fcgqcnn.load_state_dict(model_w)
     torch.save(fcgqcnn.state_dict(), "model_zoo/fcgqcnn_conversion.pt")
-    print(fcgqcnn(torch.zeros(8, 1, 128, 224)).shape)
-
 
 
 if __name__ == "__main__":
-    # fcgqcnn = FCGQCNN().to("cuda")
-    # print("final shape 32x32 input:", fcgqcnn(torch.zeros(8, 1, 32, 32).to("cuda")).shape)
-    # print("final shape 64x64 input: ", fcgqcnn(torch.zeros(8, 1, 362, 360).to("cuda")).shape)
-
     import argparse
     parser = argparse.ArgumentParser(description="Process configuration file.")
     parser.add_argument(
