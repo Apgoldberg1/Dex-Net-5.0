@@ -1,7 +1,3 @@
-"""
-Model for DexNet3.
-"""
-
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -30,20 +26,6 @@ class ResNet18(nn.Module):
 
         return x
 
-class fakeSuctionFCGQCNN(nn.Module):
-    def __init__(self, suctionModel):
-        super().__init__()
-        self.gqcnn = suctionModel
-
-    def forward(self, x):
-        heatmap = torch.zeros_like(x)
-
-        for i in range(x.shape[2] - 31):
-            for j in range(x.shape[3] - 31):
-                depth = x[:, :, i:i + 32, j:j + 32]
-                heatmap[:, :, i + 16, j + 16] = self.gqcnn(depth)
-
-        return heatmap
 
 class DexNet3(nn.Module):
     def __init__(self):
@@ -120,24 +102,20 @@ class DexNet3FCGQCNN(nn.Module):
 
     def forward(self, x):
         """
-        x: (batch, 1, 32, 32) depth images
+        x: (batch, 1, x, y) depth images
         """
         x = self.conv1(x)
         x = self.relu(x)
         x = self.conv2(x)
         x = self.relu(x)
         x = self.lrn(x)
-        # print("pre maxpool shape", x.shape)
         x = self.maxpool(x)
-        # print("post maxpool shape", x.shape)
         x = self.conv3(x)
         x = self.relu(x)
         x = self.conv4(x)
         x = self.relu(x)
         x = self.lrn(x)
 
-        print("shape before conv", x.shape)
-        #x = x.view(x.size(0), 16384, -1, 1)  # Flatten the output
         x = self.conv5(x)
         #x = self.relu(x)
         x = self.conv6(x)
@@ -147,3 +125,22 @@ class DexNet3FCGQCNN(nn.Module):
         # print("pre softmax shape", x.shape)
         x = self.softmax(x)
         return x[:, 0]
+
+class fakeSuctionFCGQCNN(nn.Module):
+    """
+    Takes gqcnn model as input. Runs it on all 32x32 crops and returns a heatmap of grasp confidences.
+    Called "fake" because it has the intended outputs of an FCGQCNN, but works using for loops which is much less efficient.
+    """
+    def __init__(self, suctionModel):
+        super().__init__()
+        self.gqcnn = suctionModel
+
+    def forward(self, x):
+        heatmap = torch.zeros_like(x)
+
+        for i in range(x.shape[2] - 31):
+            for j in range(x.shape[3] - 31):
+                depth = x[:, :, i:i + 32, j:j + 32]
+                heatmap[:, :, i + 16, j + 16] = self.gqcnn(depth).reshape(x.shape[0], 1)
+
+        return heatmap

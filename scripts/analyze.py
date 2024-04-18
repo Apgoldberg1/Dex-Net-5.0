@@ -7,9 +7,14 @@ from dexnet.torch_dataset import Dex3Dataset
 from torch.utils.data import DataLoader, random_split
 from torch.utils.data.sampler import SubsetRandomSampler
 from copy import copy
+import os
 
 
 def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
+    """
+    returns 3 arrays: accuracies, precisions, and recalls at each threshold value uniformly distributed between 0 and 1.
+    """
+
     model.eval()
     model.to(device)
     tot_preds = 0
@@ -68,14 +73,9 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
 
 def getDatasetMeanStd(loader, device):
     tot_preds = 0
-    (
-        running_im_mean,
-        running_im_std,
-        running_pose_2_mean,
-        running_pose_2_std,
-        running_pose_3_mean,
-        running_pose_3_std,
-    ) = (0, 0, 0, 0, 0, 0)
+    running_im_mean, running_im_std = 0, 0
+    running_pose_2_mean, running_pose_2_std = 0, 0
+    running_pose_3_mean, running_pose_3_std = 0, 0
 
     with torch.no_grad():
         for i, batch in enumerate(loader):
@@ -106,30 +106,35 @@ def getDatasetMeanStd(loader, device):
 
 
 def plotPrecisionRecall(precisions, recalls):
+    """
+    Takes in precision and recall arrays and saves a precision recall curve to outputs/plot.jpg
+    """
     plt.plot(recalls, precisions)
 
     plt.xlabel("Recall")
     plt.ylabel("Precision")
 
-    # plt.xticks(np.arange(0, 1.1, .1))
-    # plt.yticks(np.arange(.4, 1.1, .1))
-    # plt.ylim(.35, 1.05)
+    plt.xticks(np.arange(0, 1.1, .1))
+    plt.yticks(np.arange(0, 1.1, .1))
     plt.ylim(0, 1)
 
-    plt.savefig("outputs/plot.jpg")
+    save_dir = "outputs"
+
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    plt.savefig(f"{save_dir}/plot.jpg")
 
 
-def precisionMain(model_path, resize=False, ordered_split=False):
-    dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
+def precisionMain(model_path, dataset_path, resize=False, ordered_split=False):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.manual_seed(0)
 
     model = Model()
-    # model.load_state_dict(torch.load("model_zoo/epoch_19_DexNet.pth"))
     model.load_state_dict(torch.load(model_path))
     model.to(device)
 
-    dataset = Dex3Dataset(dataset_path, preload=True, num_files=2500, resize=resize)
+    dataset = Dex3Dataset(dataset_path)
 
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
@@ -159,16 +164,15 @@ def precisionMain(model_path, resize=False, ordered_split=False):
         model, val_loader, device, threshold_res=60
     )
 
-    print("correct:", correct)
+    print("accuracies:", correct)
     plotPrecisionRecall(precisions, recalls)
 
 
-def dataStatsMain():
-    dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
+def dataStatsMain(dataset_path):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8192
 
-    dataset = Dex3Dataset(dataset_path, preload=True, num_files=2500, resize=False)
+    dataset = Dex3Dataset(dataset_path)
 
     loader = DataLoader(
         dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=4
@@ -181,7 +185,7 @@ def getModelSummary():
     from torchinfo import summary
 
     model = Model()
-    summary(model, input_size=[(64, 1, 32, 32), (64, 2)])
+    summary(model, input_size=[(64, 1, 32, 32)])
 
 
 if __name__ == "__main__":
@@ -194,7 +198,7 @@ if __name__ == "__main__":
         metavar="MODEL_PATH",
         type=str,
         required=True,
-        help="Path to model file",
+        help="Path to model checkpoint",
     )
     parser.add_argument(
         "--model_name",
@@ -208,14 +212,19 @@ if __name__ == "__main__":
 
     model_path = args.model_file
     model_name = args.model_name
+
     if model_name.lower() == "dexnet3":
         from dexnew.grasp_model import DexNet3 as Model
-
-        # getModelSummary()
     elif model_name.lower() == "resnet18":
         from dexnew.grasp_model import ResNet18 as Model
     else:
         raise AssertionError("model_name arg is not supported")
 
-    # dataStatsMain()
-    precisionMain(model_path, ordered_split=True)
+    getModelSummary()
+
+    print("Getting data statistics")
+    dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
+    dataStatsMain(dataset_path)
+
+    print("Creating precision recall curve")
+    precisionMain(model_path, dataset_path, ordered_split=True)

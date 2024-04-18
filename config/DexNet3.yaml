@@ -1,0 +1,29 @@
+# Suction training config
+
+name: "DexNet3"
+model: "dexnet3"
+dataset: "dexnet3"
+optimizer:
+  name: "SGD"
+  learning_rate: 0.005
+  momentum: .9
+  scheduler_gamma: .90   #original is .95, but every .66 epochs. This is per epoch
+  weight_decay: .0005
+training:
+  dataset_path: "dataset/dexnet_3/dexnet_09_13_17"
+  batch_size: 256
+  num_epochs: 25
+  resize: false
+  GT_threshold: 0.2
+  wandb: true
+  ordered_split: true
+  pos_weight: 4 # make 1 for no oversampling
+outputs:
+  save_directory: "outputs/DexNet3"
+  save_name: "dex3_class_imbalance"
+  training_print_every: 500
+  val_print_every: 2000
+  save_every_x_epoch: 10
+
+  
+
