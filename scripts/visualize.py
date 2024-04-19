@@ -74,10 +74,8 @@ if __name__ == "__main__":
     model.to(device)
 
     resize = False
-    dataset = Dex3Dataset(dataset_path, preload=True, num_files=25, resize=resize)
-    datasetNoNormal = Dex3Dataset(
-        dataset_path, preload=True, num_files=25, resize=resize
-    )
+    dataset = Dex3Dataset(dataset_path)
+    datasetNoNormal = Dex3Dataset(dataset_path)
     datasetNoNormal.normalize = False
 
     batch_size = 256

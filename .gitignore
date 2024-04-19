@@ -8,4 +8,6 @@ outputs
 wandb
 *.egg-info/
 test_data
+mesh_data_dir
+*.ipynb
 

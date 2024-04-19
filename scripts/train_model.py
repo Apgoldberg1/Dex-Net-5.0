@@ -1,4 +1,3 @@
-from dexnet.torch_dataset import Dex3Dataset
 from pathlib import Path
 import torch
 import torch.nn as nn
@@ -15,7 +14,7 @@ def train(config):
         config["outputs"]["save_name"],
         config["outputs"]["save_directory"],
     )
-    batch_size = config["training"]["batch_size"]
+    gt_thresh = config["training"]["GT_threshold"]
 
     if config["training"]["wandb"]:
         # wandb.login()
@@ -40,7 +39,7 @@ def train(config):
 
             outs = model(depth_ims)
 
-            loss = criterion(outs, (wrench_resistances > 0.2).float())
+            loss = criterion(outs, (wrench_resistances > gt_thresh).float())
 
             loss.backward()
             optimizer.step()
@@ -61,7 +60,7 @@ def train(config):
 
             if i % val_print_freq == val_print_freq - 1:
                 loss, correct, precision, recall = eval(
-                    model, val_loader, criterion, device
+                    model, val_loader, criterion, gt_thresh, device
                 )
                 print(
                     f"validation: {loss}, correct: {correct}, precision: {precision}, recall: {recall}"
@@ -102,7 +101,7 @@ def train(config):
         wandb.finish()
 
 
-def eval(model, val_loader, criterion, device):
+def eval(model, val_loader, criterion, gt_thresh, device):
     model.eval()
     model.to(device)
     tot_loss, tot_preds = 0.0, 0
@@ -124,14 +123,14 @@ def eval(model, val_loader, criterion, device):
 
             correct += (
                 (
-                    ((outputs > 0.2) & (wrench_resistances > 0.2))
-                    | ((outputs <= 0.2) & (wrench_resistances <= 0.2))
+                    ((outputs > 0.2) & (wrench_resistances > 0.2)) |
+                    ((outputs <= 0.2) & (wrench_resistances <= 0.2))
                 )
                 .sum()
                 .item()
             )
 
-            tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, thresh=0.2)
+            tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=0.2)
             tot_tp, tot_fp, tot_fn = tot_tp + tp, tot_fp + fp, tot_fn + fn
 
     if tot_tp == 0:
@@ -144,10 +143,10 @@ def eval(model, val_loader, criterion, device):
     return tot_loss / tot_preds, correct / tot_preds, precision, recall
 
 
-def getPrecisionRecall(outputs, wrench_resistances, thresh=0.2):
-    tp = ((outputs > thresh) & (wrench_resistances > 0.2)).sum().item()
-    fp = ((outputs > thresh) & (wrench_resistances <= 0.2)).sum().item()
-    fn = ((outputs <= thresh) & (wrench_resistances > 0.2)).sum().item()
+def getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=0.2):
+    tp = ((outputs > thresh) & (wrench_resistances > gt_thresh)).sum().item()
+    fp = ((outputs > thresh) & (wrench_resistances <= gt_thresh)).sum().item()
+    fn = ((outputs <= thresh) & (wrench_resistances > gt_thresh)).sum().item()
 
     return tp, fp, fn
 
@@ -173,6 +172,13 @@ if __name__ == "__main__":
     yaml = YAML(typ="safe")
     config = yaml.load(config_path)
 
+    if config["dataset"].lower() == "dexnet3":
+        from dexnet.torch_dataset import Dex3Dataset as Dataset
+    elif config["dataset"].lower() == "dexnet2":
+        from dexnet.torch_dataset import Dex2Dataset as Dataset
+    else:
+        raise AssertionError("only [dexnet3, dexnet2] supported as datasets")
+
     if config["model"].lower() == "dexnet3":
         from dexnet.grasp_model import DexNet3 as Model
     elif config["model"].lower() == "resnet18":
@@ -187,7 +193,7 @@ if __name__ == "__main__":
     torch.manual_seed(0)
     batch_size = config["training"]["batch_size"]
 
-    dataset = Dex3Dataset(
+    dataset = Dataset(
         Path(dataset_path)
     )
 

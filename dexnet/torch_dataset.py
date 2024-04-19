@@ -5,7 +5,7 @@ Dataset for DexNet3.0 dataset.
 import time
 import glob
 from pathlib import Path
-from typing import Dict, Literal, get_args, Tuple
+from typing import Dict
 from concurrent.futures import ThreadPoolExecutor
 import tyro
 import tqdm
@@ -16,31 +16,23 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-
-# DexNet3.0 dataset keys -- dataset includes {KEY}_{INDEX:5d}.npz files.
-DEXNET_3_KEYS = Literal[
-    "camera_intrs",
-    "camera_poses",
-    "collistion_free",
-    "depth_ims_tf_table",
-    "grasp_ids",
-    "hand_poses",
-    "image_labels",
-    "obj_labels",
-    "obj_masks",
-    "pose_labels",
-    "robust_suction_wrench_resistance",
-]
-
-
 class Dex3Dataset(Dataset):
     """
     Dataset for DexNet3.0 dataset, for suction grasp metrics.
     """
+    # DexNet3.0 dataset keys -- dataset includes {KEY}_{INDEX:5d}.npz files.
+    # For a full list of available keys view the README contained with the dataset
+    KEYS = {
+        "imgs": "depth_ims_tf_table",
+        "pose": "hand_poses",
+        "grasp_metric": "robust_suction_wrench_resistance",
+    }
+
     normalizers = (
         0.59784445,
         0.00770147890625,
     )  # mean, std value for depth images (from analyze.py script)
+    threshold = 0.2
 
     def __init__(self, dataset_path: Path):
         """
@@ -55,15 +47,14 @@ class Dex3Dataset(Dataset):
             dataset_path / "tensors"
         ).exists(), "Dataset path does not contain tensors/ folder."
 
-        # Dynamically calculate # of files to load, if not specified.
         self.num_files = self._get_nfiles()
 
         # Load data to memory.
         start = time.time()
-        self.depth_im_data = self._get_data("depth_ims_tf_table")
-        self.grasp_metric_data = self._get_data("robust_suction_wrench_resistance")
+        self.depth_im_data = self._get_data(self.KEYS["imgs"])
+        self.grasp_metric_data = self._get_data(self.KEYS["grasp_metric"]).float()
 
-        self.pos_idx = self.grasp_metric_data >= .2     #TODO make this based on the parameter in the config
+        self.pos_idx = self.grasp_metric_data >= self.threshold     #TODO make this based on the parameter in the config
         print(f"Loaded data in {(time.time() - start):.2f} seconds.")
 
         # Misc data shape checks.
@@ -82,10 +73,10 @@ class Dex3Dataset(Dataset):
 
     def _get_nfiles(self) -> int:
         """Calculate number of files in the dataset, by counting files in the tensors/ folder."""
-        key = get_args(DEXNET_3_KEYS)[0]
+        key = self.KEYS["grasp_metric"]
         return len(glob.glob(f"{self.dataset_path}/tensors/{key}_*.npz"))
 
-    def _get_data(self, key: DEXNET_3_KEYS) -> torch.Tensor:
+    def _get_data(self, key: str) -> torch.Tensor:
         """
         Loads data to memory, uses ThreadPoolExecutor to load data in parallel.
         Data key must be one of the predefined keys in Dexnet 3.0 dataset.
@@ -95,7 +86,7 @@ class Dex3Dataset(Dataset):
             np.ndarray: concatenated data from all files (B, ...).
         """
 
-        def key_to_npz(key: DEXNET_3_KEYS, idx: int) -> str:
+        def key_to_npz(key: self.KEYS, idx: int) -> str:
             return f"{self.dataset_path}/tensors/{key}_{str(idx).zfill(5)}.npz"
 
         def loader(idx):
@@ -137,17 +128,12 @@ class Dex3Dataset(Dataset):
         img = img + gp_noise * mask
 
         # Image augmentation.
-        # Randomly rotate image by 180 degrees...
         if np.random.rand() < 0.5:
             img = transforms.functional.rotate(img, 180)
-        # Randomly flip the image...
         if np.random.rand() < 0.5:
             img = transforms.functional.vflip(img)
         if np.random.rand() < 0.5:
             img = transforms.functional.hflip(img)
-
-        # Resize image to 224x224.
-        # img = transforms.Resize((224, 224), antialias=True)(img)  # This is expensive, too.
 
         return img
 
@@ -170,6 +156,21 @@ class Dex3Dataset(Dataset):
         return depth_im, grasp_metric
 
 
+
+class Dex2Dataset(Dex3Dataset):
+    # DexNet2.0 dataset keys -- dataset includes {KEY}_{INDEX:5d}.npz files.
+    # For a full list of available keys view the README contained with the dataset
+    KEYS = {
+        "imgs": "depth_ims_tf_table",
+        "pose": "hand_poses",
+        "grasp_metric": "robust_ferrari_canny",
+    }
+    normalizers = (
+        0.7000409878366362,
+        0.004000758979378677
+    )  # mean, std value for depth images (from analyze.py script)
+    threshold = .002
+
 def testLoader():
     """
     Test Dexnet 3.0 dataset speed.
@@ -185,7 +186,6 @@ def testLoader():
     # Check iter speed.
     for _ in tqdm.tqdm(enumerate(dataloader)):
         continue
-
 
 if __name__ == "__main__":
     tyro.cli(testLoader)

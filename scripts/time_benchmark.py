@@ -18,8 +18,8 @@ def inference_benchmark(gqcnn_path, fcgqcnn_path):
 
     with torch.no_grad():
         start = time.time()
-        for i in range(10):
-            data = torch.rand((64, 1, 70, 70)).to("cuda")
+        for i in range(1):
+            data = torch.rand((64, 1, 40, 40)).to("cuda")
             model1(data)
         print("fake-fcgqcnn")
         print(time.time() - start)

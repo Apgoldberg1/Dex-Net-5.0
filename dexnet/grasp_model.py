@@ -49,7 +49,7 @@ class DexNet3(nn.Module):
         self.fc2 = nn.Linear(1024, 1024)
         self.fc3 = nn.Linear(1024, 2)
 
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         """
@@ -98,7 +98,7 @@ class DexNet3FCGQCNN(nn.Module):
         self.conv6 = nn.Conv2d(1024, 1024, (1,1), bias=True)
         self.conv7 = nn.Conv2d(1024, 2, (1,1), bias=True)
 
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         """
@@ -125,6 +125,75 @@ class DexNet3FCGQCNN(nn.Module):
         # print("pre softmax shape", x.shape)
         x = self.softmax(x)
         return x[:, 0]
+
+class HighResFCGQCNN(DexNet3FCGQCNN):
+    def forward(self, x):
+        """
+        x: (batch, 1, 32, 32) depth images
+        """
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.lrn(x)
+        # print("pre maxpool shape", x.shape)
+
+
+        x1 = torch.clone(x)[:,:,:-1,:-1]
+        x2 = torch.clone(x)[:,:,1:, :-1]
+        x3 = torch.clone(x)[:,:,:-1, 1:]
+        x4 = torch.clone(x)[:,:,1:, 1:]
+
+        out = [0,0,0,0]
+        for i, x in enumerate([x1, x2, x3, x4]):
+            x = self.maxpool(x)
+            x = self.conv3(x)
+            x = self.relu(x)
+            x = self.conv4(x)
+            x = self.relu(x)
+            x = self.lrn(x)
+
+            x = self.conv5(x)
+            #x = self.relu(x)
+            x = self.conv6(x)
+            x = self.relu(x)
+            x = self.conv7(x)
+
+            x = self.softmax(x)
+            out[i] = x[:, 0].unsqueeze(1)
+
+        return self.interweave_images(out[0], out[1], out[2], out[3])
+
+    def interweave_images(self, image1, image2, image3, image4):
+        """
+        Interweaves 4 shifted images to make one high resolution image
+        image1 is left top
+        image2 is right top
+        image3 is left bottom
+        image4 is right bottom
+        """
+        assert image1.shape == image2.shape == image3.shape == image4.shape, "Images must have the same shape"
+        print(image1.shape)
+
+        # Get the height and width of the images
+        batch, channels, height, width = image1.shape
+
+        # Interweave rows between the first two images
+        interweaved_rows1 = torch.empty((batch, channels, height * 2, width), dtype=image1.dtype)
+        interweaved_rows1[:, :, ::2] = image1
+        interweaved_rows1[:, :, 1::2] = image2
+
+        # Interweave rows between the second two images
+        interweaved_rows2 = torch.empty((batch, channels, height * 2, width), dtype=image3.dtype)
+        interweaved_rows2[:, :, ::2] = image3
+        interweaved_rows2[:, :, 1::2] = image4
+
+        # Interweave columns of the two interweaved images
+        interweaved_columns = torch.empty((batch, channels, height * 2, width * 2), dtype=image1.dtype)
+        interweaved_columns[:, :, :, ::2] = interweaved_rows1
+        interweaved_columns[:, :, :, 1::2] = interweaved_rows2
+
+        return interweaved_columns  
 
 class fakeSuctionFCGQCNN(nn.Module):
     """

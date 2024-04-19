@@ -26,6 +26,7 @@ def convert_model(path: Path):
 
     fcgqcnn.load_state_dict(model_w)
     torch.save(fcgqcnn.state_dict(), "model_zoo/fcgqcnn_conversion.pt")
+    # torch.save(fcgqcnn.state_dict(), f"model_zoo/{Path(path).fname}_conversion.pt")
 
 
 if __name__ == "__main__":

@@ -3,11 +3,11 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from dexnet.torch_dataset import Dex3Dataset
 from torch.utils.data import DataLoader, random_split
 from torch.utils.data.sampler import SubsetRandomSampler
 from copy import copy
 import os
+from pathlib import Path
 
 
 def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
@@ -27,14 +27,13 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
 
     with torch.no_grad():
         for i, batch in enumerate(val_loader):
-            depth_ims, pose, wrench_resistances = batch
-            depth_ims, pose, wrench_resistances = (
+            depth_ims, wrench_resistances = batch
+            depth_ims, wrench_resistances = (
                 depth_ims.to(device),
-                pose.to(device),
                 wrench_resistances.to(device),
             )
 
-            outputs = model(depth_ims, pose)
+            outputs = model(depth_ims)
 
             for j, thresh in enumerate(
                 np.arange(1 / threshold_res, 1, 1 / threshold_res)
@@ -57,7 +56,7 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
                     tot_fn[j] + fn,
                 )
 
-            tot_preds += len(pose)
+            tot_preds += len(wrench_resistances)
 
         precision, recall = np.zeros(threshold_res), np.zeros(threshold_res)
         for i in range(threshold_res):
@@ -73,35 +72,29 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
 
 def getDatasetMeanStd(loader, device):
     tot_preds = 0
-    running_im_mean, running_im_std = 0, 0
-    running_pose_2_mean, running_pose_2_std = 0, 0
-    running_pose_3_mean, running_pose_3_std = 0, 0
+    running_im_mean, running_im_std, running_correct = 0, 0, 0
 
     with torch.no_grad():
         for i, batch in enumerate(loader):
-            depth_ims, pose, wrench_resistances = batch
-            depth_ims, pose, wrench_resistances = (
+            depth_ims, wrench_resistances = batch
+            depth_ims, wrench_resistances = (
                 depth_ims.to(device),
-                pose.to(device),
                 wrench_resistances.to(device),
             )
 
-            tot_preds += len(pose)
+            tot_preds += len(wrench_resistances)
 
             running_im_mean += depth_ims.sum() / (32 * 32)
             running_im_std += depth_ims.std(dim=0).sum()
-            running_pose_2_mean += pose[:, 0].sum()
-            running_pose_2_std += pose[:, 0].std().sum() * len(pose)
-            running_pose_3_mean += pose[:, 1].sum()
-            running_pose_3_std += pose[:, 1].std().sum() * len(pose)
+            running_correct += (wrench_resistances >= .002).sum()
+
+            if tot_preds > 1_000_000:
+                break
 
     return (
         running_im_mean.item() / tot_preds,
         running_im_std.item() / tot_preds,
-        running_pose_2_mean.item() / tot_preds,
-        running_pose_2_std.item() / tot_preds,
-        running_pose_3_mean.item() / tot_preds,
-        running_pose_3_std.item() / tot_preds,
+        running_correct.item() / tot_preds
     )
 
 
@@ -134,7 +127,7 @@ def precisionMain(model_path, dataset_path, resize=False, ordered_split=False):
     model.load_state_dict(torch.load(model_path))
     model.to(device)
 
-    dataset = Dex3Dataset(dataset_path)
+    dataset = Dataset(dataset_path)
 
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
@@ -172,10 +165,10 @@ def dataStatsMain(dataset_path):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8192
 
-    dataset = Dex3Dataset(dataset_path)
+    dataset = Dataset(dataset_path)
 
     loader = DataLoader(
-        dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=4
+        dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=8
     )
 
     print(getDatasetMeanStd(loader, device))
@@ -200,31 +193,34 @@ if __name__ == "__main__":
         required=True,
         help="Path to model checkpoint",
     )
-    parser.add_argument(
-        "--model_name",
-        dest="model_name",
-        metavar="MODEL_NAME",
-        type=str,
-        required=True,
-        help="name of model eg resnet18, dexnet3",
-    )
-    args = parser.parse_args()
+    # parser.add_argument(
+    #     "--model_name",
+    #     dest="model_name",
+    #     metavar="MODEL_NAME",
+    #     type=str,
+    #     required=True,
+    #     help="name of model eg resnet18, dexnet3",
+    # )
+    # args = parser.parse_args()
 
-    model_path = args.model_file
-    model_name = args.model_name
+    # model_path = args.model_file
+    # model_name = args.model_name
 
-    if model_name.lower() == "dexnet3":
-        from dexnew.grasp_model import DexNet3 as Model
-    elif model_name.lower() == "resnet18":
-        from dexnew.grasp_model import ResNet18 as Model
-    else:
-        raise AssertionError("model_name arg is not supported")
+    # if model_name.lower() == "dexnet3":
+    #     from dexnew.grasp_model import DexNet3 as Model
+    # elif model_name.lower() == "resnet18":
+    #     from dexnew.grasp_model import ResNet18 as Model
+    # else:
+    #     raise AssertionError("model_name arg is not supported")
 
-    getModelSummary()
+    # getModelSummary()
 
     print("Getting data statistics")
-    dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
+    # dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
+    # from dexnet.torch_dataset import Dex3Dataset as Dataset
+    from dexnet.torch_dataset import Dex2Dataset as Dataset
+    dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")
     dataStatsMain(dataset_path)
 
-    print("Creating precision recall curve")
-    precisionMain(model_path, dataset_path, ordered_split=True)
+    # print("Creating precision recall curve")
+    # precisionMain(model_path, dataset_path, ordered_split=True)

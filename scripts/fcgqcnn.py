@@ -1,118 +1,98 @@
+"""
+Run inference with FCGQCNN
+"""
 import torch
 import numpy as np
 import math
 from dexnet.grasp_model import fakeSuctionFCGQCNN
-from dexnet.grasp_model import DexNet3FCGQCNN as FCGQCNN
+#from dexnet.grasp_model import DexNet3FCGQCNN as FCGQCNN
+from dexnet.grasp_model import HighRes as FCGQCNN
 from dexnet.grasp_model import DexNet3
 import matplotlib.pyplot as plt
 import cv2
+import os
 
-depth_im = "test_data/depth/np_10.npy"
-#depth_im = "test_data/demo_depth.npy"
-#depth_im = "test_data/dexnet_depth.npy"
-x = np.load(depth_im)
-#x = x["arr_0"][0]
+def processRGB(img_path: str):
+    img = cv2.load(img_path)
+    img = np.mean(img, axis=-1)
+    return processNumpy(img)
 
-model_weights_path = "model_zoo/fcgqcnn_conversion.pt"
-dexnet3_weights_path = "model_zoo/just_image.pth"
+def processNumpy(img):
+    """
+    example preprocessing for numpy depth image shape (width, height, 1) before inference
+    blurs, normalizes, resizes, pads, and converts to tensor
+    NOT batched operation.
+    """
+    img = blur(img)
+    img = (img - img.mean()) / img.std()
+    img = cv2.resize(img, (40, 40))
 
-gqcnn = DexNet3()
-gqcnn.load_state_dict(torch.load(dexnet3_weights_path))
-fake_model = fakeSuctionFCGQCNN(gqcnn)
+    pad = 15
+    img = cv2.copyMakeBorder(img, pad, pad, pad, pad, cv2.BORDER_REPLICATE)
 
+    img = torch.tensor(img, dtype=torch.float32).squeeze().unsqueeze(0)
 
-fcgqcnn = FCGQCNN()
-fcgqcnn.load_state_dict(torch.load(model_weights_path))
-
-
-def norm_clip_depth(depth_img):
-    depth_cliped = np.clip(depth_img, 0.6, 0.9)
-    depth_cliped = np.exp(depth_cliped)
-    depth_cliped_normalized = (depth_cliped - depth_cliped.min())/(depth_cliped.max() - depth_cliped.min())
-    return (1 - depth_cliped_normalized)
-
-def clip_background(depth_img):
-    depth_img[depth_img > 5] = 1
-    return depth_img
-
-def blur(img):
-    #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))  # Example: 5x5 circular kernel
-    kernel = np.ones((15,15), np.uint8)
-
-    img = cv2.dilate(img, kernel, iterations=1)
-    img = cv2.GaussianBlur(img, (15, 15), 5)
     return img
 
 
-normalizers = (0.59784445, 0.00770147890625, 0.5667523, 0.06042659375, 0.360944025, 0.231009775)       #mean, std (x3) image, pose dist, pose angle
-def norm_data(img, pose):
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))  # Example: 5x5 circular kernel
-    #kernel = np.ones((20,20), np.uint8)
-
+def blur(img):
+    kernel = np.ones((15,15), np.uint8)
     img = cv2.dilate(img, kernel, iterations=1)
     img = cv2.GaussianBlur(img, (15, 15), 5)
-    img = cv2.resize(img, (40, 40))
-    #img = cv2.resize(img, (195, 263))
-    #img = img[50:150, 50:200]
 
-    img = (img - normalizers[0]) / normalizers[1]
+    return img
 
-    pose = pose.reshape(2)
+def main(fcgqcnn_weights_path, dexnet3_weights_path, img):
+    gqcnn = DexNet3()
+    gqcnn.load_state_dict(torch.load(dexnet3_weights_path))
+    fake_model = fakeSuctionFCGQCNN(gqcnn)
 
-    pose[0], pose[1] = (pose[0] - math.copysign(1, pose[0]) * normalizers[2]) / normalizers[3], (pose[1] - math.copysign(1, pose[1]) * normalizers[4]) / normalizers[5]
+    fcgqcnn = FCGQCNN()
+    fcgqcnn.load_state_dict(torch.load(fcgqcnn_weights_path))
 
-    return img, pose
+    x_show = img
+    print(img.shape)
+    x = processNumpy(img)
+    x = torch.stack([x,x,x]) # add batch dim
+    print(x.shape)
+    assert len(x.shape) == 4, f"shape should be (batch, 1, x, y), but shape is {x.shape}"
+    x = x.to("cuda")
 
-z = torch.zeros((1, 2))
-z[:, 0] = .6
-z[:, 1] = 1.65
+    fcgqcnn.eval()
+    fcgqcnn.to("cuda")
+    fake_model.eval()
+    fake_model.to("cuda")
+    with torch.no_grad():
+        output = fcgqcnn(x)[0]
+        output_fake = fake_model(x)[0]
 
-#x = norm_clip_depth(x)
-print(x.min())
-#x = clip_background(x)
-x = blur(x)
-#x_show = norm_clip_depth(x) + .2
-#x = a=np.abs(x.max() - x)
-x_show = x
-_, z = norm_data(x_show, z)
-x = (x - x.mean()) / x.std()
-x = cv2.resize(x, (40, 40))
+    output = output.to("cpu")
+    print("output shape", output.shape)
+    output_fake = output_fake.to("cpu")
 
-pad = 15
-x = cv2.copyMakeBorder(x, pad, pad, pad, pad, cv2.BORDER_REPLICATE)
-x = x.squeeze()
+    if not os.path.exists("outputs"):
+        os.makedirs("outputs")
+    torch.save(output.numpy(), "outputs/fcgqcnn.npy")
+    torch.save(output_fake.numpy(), "outputs/fake_fcgqcnn.npy")
 
-x = torch.tensor(x, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
-x, z = x.to("cuda"), z.to("cuda")
-z = z.unsqueeze(0)
+    fig, axes = plt.subplots(1, 3, figsize=(10, 8))
 
-fcgqcnn.eval()
-fcgqcnn.to("cuda")
-fake_model.eval()
-fake_model.to("cuda")
-with torch.no_grad():
-    output = fcgqcnn(x)
-    output_fake = fake_model(x)
+    axes[0].imshow(output.numpy().squeeze(), cmap="gray")
+    axes[0].axis('off')
 
-print(torch.max(output))
-print(torch.max(output_fake))
-output = output.to("cpu")
-output_fake = output_fake.to("cpu")
-print(output.shape, output_fake.shape)
-torch.save(output.numpy(), "test_data/outputs/out.npy")
+    axes[1].imshow(output_fake.numpy().squeeze(), cmap="gray")
+    axes[1].axis('off')
 
-fig, axes = plt.subplots(1, 3, figsize=(10, 8))
+    axes[2].imshow(x_show.squeeze(), cmap="gray")
+    axes[2].axis('off')
 
-axes[0].imshow(output.numpy().squeeze(), cmap="gray")
-#axes[0].imshow(output.numpy(), cmap="gray")
-axes[0].axis('off')
+    plt.tight_layout()
+    plt.savefig("outputs/out.png")
+    plt.show()
+    
 
-axes[1].imshow(output_fake.numpy().squeeze(), cmap="gray")
-axes[1].axis('off')
-
-axes[2].imshow(x_show.squeeze(), cmap="gray")
-axes[2].axis('off')
-
-plt.tight_layout()
-plt.show()
-
+if __name__ == "__main__":
+    fcgqcnn_weights_path = "model_zoo/Dex-Net-3-fcgqcnn.pt"
+    dexnet3_weights_path = "model_zoo/Dex-Net-3-gqcnn.pth"
+    img = np.load("mesh_data_dir/depth/np_0.npy")
+    main(fcgqcnn_weights_path, dexnet3_weights_path, img)
