@@ -1,7 +1,21 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+import torchvision
 
+class EfficientNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.efficient_net = models.efficientnet_b0()
+        self.fc = nn.Linear(1000, 2)
+        self.softmax = nn.Softmax()
+    def forward(self, x):
+        x = torchvision.transforms.functional.resize(x, (224, 224))
+        x = torch.cat([x, x, x], dim=1)
+        x = self.efficient_net(x)
+        x = self.fc(x)
+        x = self.softmax(x)
+        return x[:, 0]
 
 class ResNet18(nn.Module):
     def __init__(self):
@@ -117,7 +131,7 @@ class DexNet3FCGQCNN(nn.Module):
         x = self.lrn(x)
 
         x = self.conv5(x)
-        #x = self.relu(x)
+        x = self.relu(x)
         x = self.conv6(x)
         x = self.relu(x)
         x = self.conv7(x)
@@ -154,7 +168,7 @@ class HighResFCGQCNN(DexNet3FCGQCNN):
             x = self.lrn(x)
 
             x = self.conv5(x)
-            #x = self.relu(x)
+            x = self.relu(x)
             x = self.conv6(x)
             x = self.relu(x)
             x = self.conv7(x)

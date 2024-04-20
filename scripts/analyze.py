@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 
 
-def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
+def getAllThreshedPrecisionRecall(model, val_loader, device, gt_thresh, threshold_res=10):
     """
     returns 3 arrays: accuracies, precisions, and recalls at each threshold value uniformly distributed between 0 and 1.
     """
@@ -40,15 +40,15 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
             ):
                 tot_correct[j] += (
                     (
-                        ((outputs > thresh) & (wrench_resistances > 0.2))
-                        | ((outputs <= thresh) & (wrench_resistances <= 0.2))
+                        ((outputs > thresh) & (wrench_resistances > gt_thresh))
+                        | ((outputs <= thresh) & (wrench_resistances <= gt_thresh))
                     )
                     .sum()
                     .item()
                 )
 
                 tp, fp, fn = getPrecisionRecall(
-                    outputs, wrench_resistances, thresh=thresh
+                    outputs, wrench_resistances, gt_thresh, thresh=thresh
                 )
                 tot_tp[j], tot_fp[j], tot_fn[j] = (
                     tot_tp[j] + tp,
@@ -70,7 +70,7 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, threshold_res=10):
     return tot_correct / tot_preds, precision, recall
 
 
-def getDatasetMeanStd(loader, device):
+def getDatasetMeanStd(loader, device, metric_thresh):
     tot_preds = 0
     running_im_mean, running_im_std, running_correct = 0, 0, 0
 
@@ -86,7 +86,7 @@ def getDatasetMeanStd(loader, device):
 
             running_im_mean += depth_ims.sum() / (32 * 32)
             running_im_std += depth_ims.std(dim=0).sum()
-            running_correct += (wrench_resistances >= .002).sum()
+            running_correct += (wrench_resistances >= metric_thresh).sum()
 
             if tot_preds > 1_000_000:
                 break
@@ -116,10 +116,10 @@ def plotPrecisionRecall(precisions, recalls):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    plt.savefig(f"{save_dir}/plot.jpg")
+    plt.savefig(f"{save_dir}/precision_recall_plot.jpg")
 
 
-def precisionMain(model_path, dataset_path, resize=False, ordered_split=False):
+def precisionMain(model_path, dataset_path, gt_thresh, ordered_split=False):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     torch.manual_seed(0)
 
@@ -154,14 +154,14 @@ def precisionMain(model_path, dataset_path, resize=False, ordered_split=False):
         )
 
     correct, precisions, recalls = getAllThreshedPrecisionRecall(
-        model, val_loader, device, threshold_res=60
+        model, val_loader, device, gt_thresh, threshold_res=50
     )
 
     print("accuracies:", correct)
     plotPrecisionRecall(precisions, recalls)
 
 
-def dataStatsMain(dataset_path):
+def dataStatsMain(dataset_path, metric_thresh):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8192
 
@@ -171,7 +171,7 @@ def dataStatsMain(dataset_path):
         dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=8
     )
 
-    print(getDatasetMeanStd(loader, device))
+    print(getDatasetMeanStd(loader, device, metric_thresh))
 
 
 def getModelSummary():
@@ -186,41 +186,47 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Process configuration file.")
     parser.add_argument(
-        "--model_file",
-        dest="model_file",
+        "--model_path",
+        dest="model_path",
         metavar="MODEL_PATH",
         type=str,
         required=True,
         help="Path to model checkpoint",
     )
-    # parser.add_argument(
-    #     "--model_name",
-    #     dest="model_name",
-    #     metavar="MODEL_NAME",
-    #     type=str,
-    #     required=True,
-    #     help="name of model eg resnet18, dexnet3",
-    # )
-    # args = parser.parse_args()
+    parser.add_argument(
+        "--model_name",
+        dest="model_name",
+        metavar="MODEL_NAME",
+        type=str,
+        required=True,
+        help="name of model eg resnet18, dexnet3",
+    )
+    args = parser.parse_args()
 
-    # model_path = args.model_file
-    # model_name = args.model_name
+    model_path = args.model_path
+    model_name = args.model_name
 
-    # if model_name.lower() == "dexnet3":
-    #     from dexnew.grasp_model import DexNet3 as Model
-    # elif model_name.lower() == "resnet18":
-    #     from dexnew.grasp_model import ResNet18 as Model
-    # else:
-    #     raise AssertionError("model_name arg is not supported")
+    if model_name.lower() == "dexnet3":
+        from dexnet.grasp_model import DexNet3 as Model
+    elif model_name.lower() == "resnet18":
+        from dexnet.grasp_model import ResNet18 as Model
+    elif model_name.lower() == "efficientnet":
+        from dexnet.grasp_model import EfficientNet as Model
+    else:
+        raise AssertionError("model_name arg is not supported")
 
     # getModelSummary()
 
-    print("Getting data statistics")
-    # dataset_path = "dataset/dexnet_3/dexnet_09_13_17"
+    # print("Getting data statistics")
+    # dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
     # from dexnet.torch_dataset import Dex3Dataset as Dataset
+    # gt_thresh = .02
+
     from dexnet.torch_dataset import Dex2Dataset as Dataset
     dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")
-    dataStatsMain(dataset_path)
+    gt_thresh = .002
 
-    # print("Creating precision recall curve")
-    # precisionMain(model_path, dataset_path, ordered_split=True)
+    # dataStatsMain(dataset_path, .002)
+
+    print("Creating precision recall curve")
+    precisionMain(model_path, dataset_path, gt_thresh, ordered_split=True)
