@@ -33,7 +33,9 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, gt_thresh, threshol
                 wrench_resistances.to(device),
             )
 
-            outputs = model(depth_ims)
+            outputs = model(depth_ims).reshape(len(wrench_resistances), 1)
+            wrench_resistances = wrench_resistances.reshape(len(wrench_resistances), 1)
+            assert outputs.shape == wrench_resistances.shape, "shape mismatch between gt and model outputs"
 
             for j, thresh in enumerate(
                 np.arange(1 / threshold_res, 1, 1 / threshold_res)
@@ -86,7 +88,7 @@ def getDatasetMeanStd(loader, device, metric_thresh):
 
             running_im_mean += depth_ims.sum() / (32 * 32)
             running_im_std += depth_ims.std(dim=0).sum()
-            running_correct += (wrench_resistances >= metric_thresh).sum()
+            running_correct += (wrench_resistances > metric_thresh).sum()
 
             if tot_preds > 1_000_000:
                 break
@@ -110,6 +112,7 @@ def plotPrecisionRecall(precisions, recalls):
     plt.xticks(np.arange(0, 1.1, .1))
     plt.yticks(np.arange(0, 1.1, .1))
     plt.ylim(0, 1)
+    plt.xlim(0, 1)
 
     save_dir = "outputs"
 
@@ -131,7 +134,7 @@ def precisionMain(model_path, dataset_path, gt_thresh, ordered_split=False):
 
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
-    batch_size = 4096
+    batch_size = 2048
 
     if ordered_split:
         val_sampler = SubsetRandomSampler(torch.arange(0, val_size))
@@ -154,10 +157,12 @@ def precisionMain(model_path, dataset_path, gt_thresh, ordered_split=False):
         )
 
     correct, precisions, recalls = getAllThreshedPrecisionRecall(
-        model, val_loader, device, gt_thresh, threshold_res=50
+        model, val_loader, device, gt_thresh, threshold_res=80
     )
 
     print("accuracies:", correct)
+    print("precisions:", precisions)
+    print("recalls:", recalls)
     plotPrecisionRecall(precisions, recalls)
 
 
@@ -217,15 +222,15 @@ if __name__ == "__main__":
 
     # getModelSummary()
 
+    dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
+    from dexnet.torch_dataset import Dex3Dataset as Dataset
+    gt_thresh = .2
+
+    # from dexnet.torch_dataset import Dex2Dataset as Dataset
+    # dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")
+    # gt_thresh = .2
+
     # print("Getting data statistics")
-    # dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
-    # from dexnet.torch_dataset import Dex3Dataset as Dataset
-    # gt_thresh = .02
-
-    from dexnet.torch_dataset import Dex2Dataset as Dataset
-    dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")
-    gt_thresh = .002
-
     # dataStatsMain(dataset_path, .002)
 
     print("Creating precision recall curve")
