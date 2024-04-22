@@ -6,7 +6,7 @@ import torchvision
 class EfficientNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.efficient_net = models.efficientnet_b0()
+        self.efficient_net = models.efficientnet_b4()
         self.fc = nn.Linear(1000, 2)
         self.softmax = nn.Softmax()
     def forward(self, x):

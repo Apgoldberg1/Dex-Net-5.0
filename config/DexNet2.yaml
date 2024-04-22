@@ -20,7 +20,7 @@ training:
   pos_weight: 1 # make 1 for no oversampling
 outputs:
   save_directory: "outputs/DexNet2"
-  save_name: "dex2_og_sgd"
+  save_name: "dex2_no_mid_layer"
   training_print_every: 500
   val_print_every: 2000
   save_every_x_epoch: 10
