@@ -79,3 +79,4 @@ Training times, dataset load times, original, and gqcnn prec recall curves
 ### Angle Analysis
 INCLUDE RYAN'S TRAINING CURVES
 
+
