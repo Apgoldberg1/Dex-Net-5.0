@@ -20,21 +20,12 @@ cd Dex-Net-5.0
 pip install -e .
 ```
 
-The Dex-Net dataset used for this repository can be downloaded [here]()
+The Dex-Net dataset used for this repository for training can be downloaded [here]()
 
-Other published datasets and mesh files can be found [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
+The model weights for suction and parallel jaw grasp models can be found [here](). See grasp models section for more model details.
 
-"DexNetGQCNN" suction grasp model weights can be dowloaded [here]()
+Other published datasets and mesh files from previous works can be found [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
 
-"EfficientNet" suction grasp model weights can be downloaded [here]()
-
-"DexNetFCGQCNN" suction grasp model weights can be downloaded [here]()
-
-"DexNetGQCNN" parallel jaw grasp model weights can be downloaded [here])()
-
-"DexNetFCGQCNN" parallel jaw grasp model weights can be downloaded [here]()
-
-See grasp models section for more model details.
 
 ## Usage
 
@@ -60,6 +51,10 @@ Defines models. Models take in a batch of normalized single channel depth images
 ### torch_dataset.py
 
 Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The dataset contains cropped 32x32 depth images of single objects paired with a grasp confidence score. For Dex-Net 2.0 data, this grasp metric corresponds to a parallel jaw grasp centered at the middle of the image and with the grasp axis horizontally on the image. For Dex-Net 3.0 suction data, this score corresponds to a suction grasp at the center of the image with the approach axis aligned to the middle column. See [Dex-Net 2.0](https://arxiv.org/abs/1703.09312) and [Dex-Net 3.0](https://arxiv.org/abs/1709.06670) for more details on dataset generation.
+
+### configs
+
+The configs include YAML files specifying model name, save name, dataset path, optimizer, wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 datasets.
 
 ## grasp models
 
