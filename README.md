@@ -1,5 +1,5 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
-Dex-Net 5.0 is a PyTorch implementation to train on the Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp dataset. It provides faster data-loading, training, and inference over the original implementations. The models take cropped 32x32 depth images, the distance of the gripper from the camera, and grasp approach angle (only for suction) as input, and output a grasp confidence.
+Dex-Net 5.0 is a PyTorch implementation to train on the Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides faster data-loading, training, and inference over the original implementations. The models take normalized single channel depth images as input, and output grasp confidences.
 
 ## Original Work
 Dex-Net 5.0 is an extension of previous work which can be found here:
@@ -59,7 +59,7 @@ Defines models. Models take in a batch of normalized single channel depth images
 
 ### torch_dataset.py
 
-Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset.
+Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The dataset contains cropped 32x32 depth images of single objects paired with a grasp confidence score. For Dex-Net 2.0 data, this grasp metric corresponds to a parallel jaw grasp centered at the middle of the image and with the grasp axis horizontally on the image. For Dex-Net 3.0 suction data, this score corresponds to a suction grasp at the center of the image with the approach axis aligned to the middle column. See [Dex-Net 2.0](https://arxiv.org/abs/1703.09312) and [Dex-Net 3.0](https://arxiv.org/abs/1709.06670) for more details on dataset generation.
 
 ## grasp models
 
