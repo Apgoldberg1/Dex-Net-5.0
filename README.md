@@ -33,25 +33,29 @@ Dex-Net 3.0 suction grasp model weights can be dowloaded [here](https://drive.go
 Runs train eval loop based on the given config.
 
 ```
-python3 train_model.py --config PATH_TO_DESIRED_CONFIG_FILE
+python3 scripts/train_model.py --config PATH_TO_DESIRED_CONFIG_FILE
 ```
 
 ### analyze.py
 
-For model benchmarks. Generates precision recall curve, inference speed timings, and mean and std over the datset.
+Contains functions to generate precision recall curves, run inference speed timings, and compute the mean and std over the datset.
+```
+python3 scripts/analyze.py --model_path PATH_TO_MODEL --model_name [DexNetGQCNN, EfficientNet]
+```
 
 ### grasp_model.py
 
-Defines models to be used in train_model.py
+Defines models to be used in train_model.py. Models take in a batch of normalized single channel depth images and output grasp confidence(s).
 
-"DexNet3" is an implementation of the model described in [Dex-Net 3.0](https://arxiv.org/abs/1709.06670) and provides the best performance.
+"DexNetGQCNN" is an implementation similar to the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). Unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training. It takes only the 32x32 normalized depth images.
+"EfficientNet" uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly out performs "DexNetGQCNN" (see results).
+"DexNetFCGQCNN" is a fully convolutional network which takes a batch of normalized depth images which may be larger than 32x32 and returns a grasp confidence heatmap. DexNetGQCNN weights can be converted to DexNetFCGQCNN weights using convert_weights.py.
+"fakeFCGQCNN" runs a provided GQCNN across each 32x32 crop of an image to return a grasp confidence heatmap. This model is inefficient and is intended for testing and benchmarking purposes.
+
 
 ### torch_dataset.py
 
-Provides PyTorch dataset to load the Dex-Net 3.0 dataset efficiently
-```
-python3 analyze.py --model_file PATH_TO_MODEL_WEIGHTS --model_name dexnet3
-```
+Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset.
 
 
 
