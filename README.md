@@ -62,13 +62,13 @@ GQ-CNNs (Grasp Quality Convolutional Neural Networks) are models which use a CNN
 
 FC-GQ-CNNs (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can take in image sizes larger than 32x32 and output a heatmap of grasp confidences in one pass rather than a single value. A fully convolutional structure allows for faster inference over running multiple forward passes with a GQ-CNN. See **Performance Analysis** section for more details.
 
-"DexNetGQCNN" is an implementation similar to the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). Unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training. It takes only the 32x32 normalized depth images.
+**DexNetGQCNN** is an implementation similar to the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). Unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training. It takes only the 32x32 normalized depth images.
 
-"EfficientNet" uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly out performs "DexNetGQCNN" on suction (see **Performance Analysis** section).
+**EfficientNet** uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly out performs "DexNetGQCNN" on suction (see **Performance Analysis** section).
 
-"DexNetFCGQCNN" is a fully convolutional network which takes a batch of normalized depth images which may be larger than 32x32 and returns a grasp confidence heatmap. DexNetGQCNN weights can be converted to DexNetFCGQCNN weights using convert_weights.py. It can be used for both suction and parallel jaw grasps.
+**DexNetFCGQCNN** is a fully convolutional network which takes a batch of normalized depth images which may be larger than 32x32 and returns a grasp confidence heatmap. DexNetGQCNN weights can be converted to DexNetFCGQCNN weights using convert_weights.py. It can be used for both suction and parallel jaw grasps.
 
-"fakeFCGQCNN" runs a provided GQCNN across each 32x32 crop of an image to return a grasp confidence heatmap. This model is inefficient and is intended for testing and benchmarking purposes.
+**fakeFCGQCNN** runs a provided GQCNN across each 32x32 crop of an image to return a grasp confidence heatmap. This model is inefficient and is intended for testing and benchmarking purposes.
 
 ## Performance Analysis
 
