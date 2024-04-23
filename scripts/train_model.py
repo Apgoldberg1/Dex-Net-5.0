@@ -14,6 +14,9 @@ def train(config):
         config["outputs"]["save_name"],
         config["outputs"]["save_directory"],
     )
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
     gt_thresh = config["training"]["GT_threshold"]
 
     if config["training"]["wandb"]:
@@ -34,18 +37,22 @@ def train(config):
                 depth_ims.to(device),
                 wrench_resistances.to(device),
             )
-
-            optimizer.zero_grad()
+            wrench_resistances = torch.clip(wrench_resistances, 0, 1)
 
             outs = model(depth_ims)
 
-            loss = criterion(outs, (wrench_resistances > gt_thresh).float())
+            loss = criterion(outs.squeeze(), (wrench_resistances > gt_thresh).float().squeeze())
+            # loss = criterion(outs.squeeze(), wrench_resistances.squeeze())
 
+            optimizer.zero_grad()
             loss.backward()
+
+            # max_norm = 1.0  
+            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
             optimizer.step()
 
-            tot_loss += loss.item() * len(depth_ims)
-            tot_preds += len(depth_ims)
+            tot_loss += loss.item() * len(wrench_resistances)
+            tot_preds += len(wrench_resistances)
 
             train_print_freq, val_print_freq = (
                 config["outputs"]["training_print_every"],
@@ -59,6 +66,7 @@ def train(config):
                 tot_loss, tot_preds = 0, 0
 
             if i % val_print_freq == val_print_freq - 1:
+                torch.save(model.state_dict(), f"{save_directory}/{save_name}_in_training.pth")
                 loss, correct, precision, recall = eval(
                     model, val_loader, criterion, gt_thresh, device
                 )
@@ -84,9 +92,6 @@ def train(config):
 
         print("epoch", epoch, "complete")
         scheduler.step()
-        if not os.path.exists(save_directory):
-            os.makedirs(save_directory)
-        torch.save(model.state_dict(), f"{save_directory}/{save_name}_in_training.pth")
 
         save_every_x = config["outputs"]["save_every_x_epoch"]
         if epoch % save_every_x == save_every_x - 1:
@@ -115,12 +120,14 @@ def eval(model, val_loader, criterion, gt_thresh, device):
                 wrench_resistances.to(device),
             )
 
-            outputs = model(depth_ims)
-            loss = criterion(outputs, wrench_resistances)
+            outputs = model(depth_ims).squeeze()
+            loss = criterion(outputs, (wrench_resistances > gt_thresh).float().squeeze())
+            # loss = criterion(outputs.squeeze(), wrench_resistances.squeeze())
 
-            tot_loss += loss.item() * len(depth_ims)
-            tot_preds += len(depth_ims)
+            tot_loss += loss.item() * len(wrench_resistances)
+            tot_preds += len(wrench_resistances)
 
+            wrench_resistances = wrench_resistances.squeeze()
             correct += (
                 (
                     ((outputs > 0.2) & (wrench_resistances > 0.2)) |
@@ -129,8 +136,9 @@ def eval(model, val_loader, criterion, gt_thresh, device):
                 .sum()
                 .item()
             )
+            assert correct <= tot_preds, f"correct: {correct}, tot_preds: {tot_preds}"
 
-            tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=0.2)
+            tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=gt_thresh)
             tot_tp, tot_fp, tot_fn = tot_tp + tp, tot_fp + fp, tot_fn + fn
 
     if tot_tp == 0:
@@ -183,6 +191,8 @@ if __name__ == "__main__":
         from dexnet.grasp_model import DexNet3 as Model
     elif config["model"].lower() == "resnet18":
         from dexnet.grasp_model import ResNet18 as Model
+    elif config["model"].lower() == "efficientnet":
+        from dexnet.grasp_model import EfficientNet as Model
     else:
         raise AssertionError(
             f"{config['model']} is not a model option, try dexnet3 or resnet18 instead"
@@ -253,7 +263,7 @@ if __name__ == "__main__":
     optimizer_name = config["optimizer"]["name"]
 
     if optimizer_name.lower() == "sgd":
-        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
     elif optimizer_name.lower() == "adam":
         optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     else:

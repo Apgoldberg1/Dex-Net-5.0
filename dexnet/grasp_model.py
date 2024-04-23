@@ -1,7 +1,21 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+import torchvision
 
+class EfficientNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.efficient_net = models.efficientnet_b4()
+        self.fc = nn.Linear(1000, 2)
+        self.softmax = nn.Softmax()
+    def forward(self, x):
+        x = torchvision.transforms.functional.resize(x, (224, 224))
+        x = torch.cat([x, x, x], dim=1)
+        x = self.efficient_net(x)
+        x = self.fc(x)
+        x = self.softmax(x)
+        return x[:, 0]
 
 class ResNet18(nn.Module):
     def __init__(self):
@@ -26,6 +40,54 @@ class ResNet18(nn.Module):
 
         return x
 
+# class DexNet3(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#         self.relu = nn.ReLU()
+#         self.conv1 = nn.Conv2d(
+#             in_channels=1, out_channels=64, kernel_size=7, padding="same"
+#         )
+#         self.conv2 = nn.Conv2d(
+#             in_channels=64, out_channels=64, kernel_size=5, padding="same"
+#         )
+#         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+#         self.conv3 = nn.Conv2d(
+#             in_channels=64, out_channels=64, kernel_size=3, padding="same"
+#         )
+#         self.conv4 = nn.Conv2d(
+#             in_channels=64, out_channels=64, kernel_size=3, padding="same"
+#         )
+#         self.lrn = nn.LocalResponseNorm(size=2, alpha=2.0e-05, beta=0.75, k=1.0)
+#         self.fc = nn.Linear(16384, 1024)
+#         self.fc2 = nn.Linear(1024, 1024)
+#         self.fc3 = nn.Linear(1024, 2)
+
+#         self.softmax = nn.Softmax(dim=1)
+
+#     def forward(self, x):
+#         """
+#         x: (batch, 1, 32, 32) depth images
+#         """
+#         x = self.conv1(x)
+#         x = self.relu(x)
+#         x = self.conv2(x)
+#         x = self.relu(x)
+#         x = self.lrn(x)
+#         x = self.maxpool(x)
+#         x = self.conv3(x)
+#         x = self.relu(x)
+#         x = self.conv4(x)
+#         x = self.relu(x)
+#         x = self.lrn(x)
+#         x = x.view(x.size(0), -1)  # Flatten the output
+#         x = self.fc(x)
+#         x = self.relu(x)
+#         x = self.fc2(x)
+#         x = self.relu(x)
+#         x = self.fc3(x)
+
+#         x = self.softmax(x)
+#         return x[:, 0]
 
 class DexNet3(nn.Module):
     def __init__(self):
@@ -47,9 +109,11 @@ class DexNet3(nn.Module):
         self.lrn = nn.LocalResponseNorm(size=2, alpha=2.0e-05, beta=0.75, k=1.0)
         self.fc = nn.Linear(16384, 1024)
         self.fc2 = nn.Linear(1024, 1024)
-        self.fc3 = nn.Linear(1024, 2)
+        # self.fc3 = nn.Linear(1024, 2)
+        self.fc3 = nn.Linear(1024, 1)
 
-        self.softmax = nn.Softmax(dim=1)
+        # self.softmax = nn.Softmax(dim=1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         """
@@ -73,8 +137,10 @@ class DexNet3(nn.Module):
         x = self.relu(x)
         x = self.fc3(x)
 
-        x = self.softmax(x)
-        return x[:, 0]
+        # x = self.softmax(x)
+        x = self.sigmoid(x)
+        # return x[:, 0]
+        return x
 
 class DexNet3FCGQCNN(nn.Module):
     def __init__(self):
@@ -117,7 +183,7 @@ class DexNet3FCGQCNN(nn.Module):
         x = self.lrn(x)
 
         x = self.conv5(x)
-        #x = self.relu(x)
+        x = self.relu(x)
         x = self.conv6(x)
         x = self.relu(x)
         x = self.conv7(x)
@@ -154,7 +220,7 @@ class HighResFCGQCNN(DexNet3FCGQCNN):
             x = self.lrn(x)
 
             x = self.conv5(x)
-            #x = self.relu(x)
+            x = self.relu(x)
             x = self.conv6(x)
             x = self.relu(x)
             x = self.conv7(x)

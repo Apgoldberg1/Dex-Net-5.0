@@ -33,6 +33,7 @@ class Dex3Dataset(Dataset):
         0.00770147890625,
     )  # mean, std value for depth images (from analyze.py script)
     threshold = 0.2
+    metric_multiplier = 1
 
     def __init__(self, dataset_path: Path):
         """
@@ -42,6 +43,7 @@ class Dex3Dataset(Dataset):
             dataset_path: path to the dataset folder, contains the `.../tensors/` folder.
         """
         # Get datasets path; it must contain tensors/ folder, check if it exists.
+        self.transform = True
         self.dataset_path = dataset_path
         assert (
             dataset_path / "tensors"
@@ -53,6 +55,7 @@ class Dex3Dataset(Dataset):
         start = time.time()
         self.depth_im_data = self._get_data(self.KEYS["imgs"])
         self.grasp_metric_data = self._get_data(self.KEYS["grasp_metric"]).float()
+        self.grasp_metric_data *= self.metric_multiplier
 
         self.pos_idx = self.grasp_metric_data >= self.threshold     #TODO make this based on the parameter in the config
         print(f"Loaded data in {(time.time() - start):.2f} seconds.")
@@ -116,24 +119,25 @@ class Dex3Dataset(Dataset):
         # Normalize image data.
         img = (img - self.normalizers[0]) / self.normalizers[1]
 
-        # Create noise -- with same shape as image.
-        gp_noise = torch.randn(8, 8) * 0.005
-        gp_noise = F.interpolate(
-            gp_noise.unsqueeze(0).unsqueeze(0), scale_factor=4.0, mode="bicubic"
-        ).squeeze()
-        assert gp_noise.shape[-1] == img.shape[-1], "Noise shape mismatch."
+        if self.transform:
+            # Create noise -- with same shape as image.
+            gp_noise = torch.randn(8, 8) * 0.005
+            gp_noise = F.interpolate(
+                gp_noise.unsqueeze(0).unsqueeze(0), scale_factor=4.0, mode="bicubic"
+            ).squeeze()
+            assert gp_noise.shape[-1] == img.shape[-1], "Noise shape mismatch."
 
-        # Add the noise to the image where pixel values are greater than 0
-        mask = (img > 0).float()
-        img = img + gp_noise * mask
+            # Add the noise to the image where pixel values are greater than 0
+            mask = (img > 0).float()
+            img = img + gp_noise * mask
 
-        # Image augmentation.
-        if np.random.rand() < 0.5:
-            img = transforms.functional.rotate(img, 180)
-        if np.random.rand() < 0.5:
-            img = transforms.functional.vflip(img)
-        if np.random.rand() < 0.5:
-            img = transforms.functional.hflip(img)
+            # Image augmentation.
+            if np.random.rand() < 0.5:
+                img = transforms.functional.rotate(img, 180)
+            if np.random.rand() < 0.5:
+                img = transforms.functional.vflip(img)
+            if np.random.rand() < 0.5:
+                img = transforms.functional.hflip(img)
 
         return img
 
@@ -169,7 +173,9 @@ class Dex2Dataset(Dex3Dataset):
         0.7000409878366362,
         0.004000758979378677
     )  # mean, std value for depth images (from analyze.py script)
-    threshold = .002
+    threshold = .2
+    # The dataset actually thresholds at .002, so we multiply by 100 for consistency between the datasets
+    metric_multiplier = 100
 
 def testLoader():
     """
@@ -180,8 +186,8 @@ def testLoader():
     dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
     dataset = Dex3Dataset(dataset_path)
 
-    batch_size = 128
-    dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
+    batch_size = 256 
+    dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=8)
 
     # Check iter speed.
     for _ in tqdm.tqdm(enumerate(dataloader)):
