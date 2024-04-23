@@ -4,11 +4,7 @@ Dex-Net 5.0 is a PyTorch implementation to train on the Dex-Net 2.0 parallel jaw
 ## Original Work
 Dex-Net 5.0 is an extension of previous work which can be found here:
 
-[Dex-Net Project Website](https://berkeleyautomation.github.io/dex-net/)
-
-[Dex-Net Documentation](https://berkeleyautomation.github.io/dex-net/code.html)
-
-[Dex-Net Package GitHub](https://github.com/BerkeleyAutomation/dex-net)
+📋 [Dex-Net Project Website](https://berkeleyautomation.github.io/dex-net/) $\~\~\~\~$ 📚 [Dex-Net Documentation](https://berkeleyautomation.github.io/dex-net/code.html)  $\~\~\~\~$ 📦 [Dex-Net Package GitHub](https://github.com/BerkeleyAutomation/dex-net)
 
 ## Project Setup
 
