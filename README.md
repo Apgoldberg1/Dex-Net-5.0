@@ -22,7 +22,7 @@ pip install -e .
 
 The Dex-Net dataset used for this repository for training can be downloaded [here]()
 
-The model weights for suction and parallel jaw grasp models can be found [here](). See grasp models section for more model details.
+The model weights for suction and parallel jaw grasp models can be found [here]() (see grasp models section for model details).
 
 Other published datasets and mesh files from previous works can be found [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
 
