@@ -7,7 +7,6 @@ import glob
 from pathlib import Path
 from typing import Dict
 from concurrent.futures import ThreadPoolExecutor
-import tyro
 import tqdm
 
 import numpy as np
@@ -194,4 +193,4 @@ def testLoader():
         continue
 
 if __name__ == "__main__":
-    tyro.cli(testLoader)
+    testLoader()

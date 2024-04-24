@@ -6,7 +6,7 @@ import torchvision
 class EfficientNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.efficient_net = models.efficientnet_b4()
+        self.efficient_net = models.efficientnet_b0()
         self.fc = nn.Linear(1000, 2)
         self.softmax = nn.Softmax()
     def forward(self, x):
@@ -142,6 +142,56 @@ class DexNet3(nn.Module):
         # return x[:, 0]
         return x
 
+class BaseFCGQCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.relu = nn.ReLU()
+        self.conv1 = nn.Conv2d(
+            in_channels=1, out_channels=64, kernel_size=7, padding="same"
+        )
+        self.conv2 = nn.Conv2d(
+            in_channels=64, out_channels=64, kernel_size=5, padding="same"
+        )
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.conv3 = nn.Conv2d(
+            in_channels=64, out_channels=64, kernel_size=3, padding="same"
+        )
+        self.conv4 = nn.Conv2d(
+            in_channels=64, out_channels=64, kernel_size=3, padding="same"
+        )
+        self.lrn = nn.LocalResponseNorm(size=2, alpha=2.0e-05, beta=0.75, k=1.0)
+        self.conv5 = nn.Conv2d(64, 1024, (16,16), bias=True)
+        self.conv6 = nn.Conv2d(1024, 1024, (1,1), bias=True)
+        self.conv7 = nn.Conv2d(1024, 1, (1,1), bias=True)
+
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        """
+        x: (batch, 1, x, y) depth images
+        """
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.lrn(x)
+        x = self.maxpool(x)
+        x = self.conv3(x)
+        x = self.relu(x)
+        x = self.conv4(x)
+        x = self.relu(x)
+        x = self.lrn(x)
+
+        x = self.conv5(x)
+        x = self.relu(x)
+        x = self.conv6(x)
+        x = self.relu(x)
+        x = self.conv7(x)
+
+        x = self.sigmoid(x)
+        return x
+
+
 class DexNet3FCGQCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -192,7 +242,7 @@ class DexNet3FCGQCNN(nn.Module):
         x = self.softmax(x)
         return x[:, 0]
 
-class HighResFCGQCNN(DexNet3FCGQCNN):
+class HighResFCGQCNN(BaseFCGQCNN):
     def forward(self, x):
         """
         x: (batch, 1, 32, 32) depth images
@@ -225,8 +275,8 @@ class HighResFCGQCNN(DexNet3FCGQCNN):
             x = self.relu(x)
             x = self.conv7(x)
 
-            x = self.softmax(x)
-            out[i] = x[:, 0].unsqueeze(1)
+            x = self.sigmoid(x)
+            out[i] = x
 
         return self.interweave_images(out[0], out[1], out[2], out[3])
 

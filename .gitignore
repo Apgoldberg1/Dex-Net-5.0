@@ -9,5 +9,6 @@ wandb
 *.egg-info/
 test_data
 mesh_data_dir
-*.ipynb
+#*.ipynb
+GT_And_Preds.png
 

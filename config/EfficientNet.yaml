@@ -20,7 +20,7 @@ training:
   pos_weight: 1 # make 1 for no oversampling
 outputs:
   save_directory: "outputs/efficientnet3"
-  save_name: "efficientnet3_b4"
+  save_name: "efficientnet3_v2_s"
   training_print_every: 500
   val_print_every: 2000
   save_every_x_epoch: 5

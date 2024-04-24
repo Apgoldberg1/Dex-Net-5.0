@@ -2,7 +2,7 @@
 Takes in gqcnn checkpoint. Converts and saves an FCGQCNN checkpoint
 """
 from dexnet.grasp_model import DexNet3 as model
-from dexnet.grasp_model import DexNet3FCGQCNN as FCGQCNN
+from dexnet.grasp_model import BaseFCGQCNN as FCGQCNN
 from pathlib import Path
 import torch
 
@@ -17,7 +17,7 @@ def convert_model(path: Path):
     model_w['conv6.weight'] = model_w['fc2.weight'].reshape(1024, 1024, 1, 1)
     model_w['conv6.bias'] = model_w['fc2.bias']
 
-    model_w['conv7.weight'] = model_w['fc3.weight'].reshape(2, 1024, 1, 1)
+    model_w['conv7.weight'] = model_w['fc3.weight'].reshape(1, 1024, 1, 1)
     model_w['conv7.bias'] = model_w['fc3.bias']
 
     del model_w['fc.weight'], model_w['fc.bias']
