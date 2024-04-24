@@ -71,6 +71,8 @@ The configs include YAML files specifying model name, save name, dataset path, o
 ### 🪠 Suction
 Training times, dataset load times, efficientnet, original, and gqcnn prec recall curves
 
+![suction precision recall curve comparison](README_Images/Suction_GQCNN_Comparison.jpg)
+
 ### 🦈 Parallel Jaw
 Training times, dataset load times, original, and gqcnn prec recall curves
 
