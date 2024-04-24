@@ -75,13 +75,13 @@ Training with the original architecture (Dex-Net Base) matches the performance d
 
 #### Dex-Net Base
 - 18 million parameters
-- 999 inferences per second
+- 999 inferences per second on single V100 (32GB)
 - 6 hours of training on single RTX 2080 Ti
 - Trained with SGD and 0.9 momentum
 
 #### EfficientNet GQ-CNN
 - 5.3 million parameters
-- 999 inferences per second
+- 999 inferences per second on single V100 (32GB)
 - 30 hours of training on single RTX 2080 Ti
 - Trained with Adam optimizer
 
@@ -89,9 +89,8 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 
 
 ### 🦈 Parallel Jaw
-Training times, dataset load times, original, and gqcnn prec recall curves
 
-### 🕙 Inference Speed
+### 🕙 FC-GQCNN Inference Speed
 
 ### 📐 Angle Analysis
 ![training with and without angle and z distance comparison](README_Images/AngleNoAnglePlot.png)
