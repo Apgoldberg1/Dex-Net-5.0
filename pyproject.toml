@@ -8,7 +8,6 @@ dependencies=[
     "ruamel.yaml",
     "torch",
     "torchvision",
-    "tyro",
     "opencv-python",
     "matplotlib",
     "tqdm",

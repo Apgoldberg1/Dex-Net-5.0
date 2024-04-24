@@ -1,3 +1,6 @@
+"""
+Main training file. Contains train, eval, and config processing.
+"""
 from pathlib import Path
 import torch
 import torch.nn as nn
@@ -20,7 +23,6 @@ def train(config):
     gt_thresh = config["training"]["GT_threshold"]
 
     if config["training"]["wandb"]:
-        # wandb.login()
         run = wandb.init(
             project="DexNet",
             config=config,
@@ -42,13 +44,10 @@ def train(config):
             outs = model(depth_ims)
 
             loss = criterion(outs.squeeze(), (wrench_resistances > gt_thresh).float().squeeze())
-            # loss = criterion(outs.squeeze(), wrench_resistances.squeeze())
 
             optimizer.zero_grad()
             loss.backward()
 
-            # max_norm = 1.0  
-            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
             optimizer.step()
 
             tot_loss += loss.item() * len(wrench_resistances)
@@ -122,7 +121,6 @@ def eval(model, val_loader, criterion, gt_thresh, device):
 
             outputs = model(depth_ims).squeeze()
             loss = criterion(outputs, (wrench_resistances > gt_thresh).float().squeeze())
-            # loss = criterion(outputs.squeeze(), wrench_resistances.squeeze())
 
             tot_loss += loss.item() * len(wrench_resistances)
             tot_preds += len(wrench_resistances)
@@ -187,10 +185,8 @@ if __name__ == "__main__":
     else:
         raise AssertionError("only [dexnet3, dexnet2] supported as datasets")
 
-    if config["model"].lower() == "dexnet3":
-        from dexnet.grasp_model import DexNet3 as Model
-    elif config["model"].lower() == "resnet18":
-        from dexnet.grasp_model import ResNet18 as Model
+    if config["model"].lower() == "dexnetbase":
+        from dexnet.grasp_model import DexNetBase as Model
     elif config["model"].lower() == "efficientnet":
         from dexnet.grasp_model import EfficientNet as Model
     else:

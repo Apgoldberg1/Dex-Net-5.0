@@ -1,7 +1,7 @@
 """
-Takes in gqcnn checkpoint. Converts and saves an FCGQCNN checkpoint
+Convert GQ-CNN DexNetBase checkpoint to BaseFCGQCNN checkpoint
 """
-from dexnet.grasp_model import DexNet3 as model
+from dexnet.grasp_model import DexNetBase as model
 from dexnet.grasp_model import BaseFCGQCNN as FCGQCNN
 from pathlib import Path
 import torch
@@ -24,9 +24,13 @@ def convert_model(path: Path):
     del model_w['fc2.weight'], model_w['fc2.bias']
     del model_w['fc3.weight'], model_w['fc3.bias']
 
+    # check our new weights load correctly!
     fcgqcnn.load_state_dict(model_w)
-    torch.save(fcgqcnn.state_dict(), "model_zoo/fcgqcnn_conversion.pt")
-    # torch.save(fcgqcnn.state_dict(), f"model_zoo/{Path(path).fname}_conversion.pt")
+
+    if not os.path.exists("model_zoo"):
+        os.makedirs("model_zoo")
+
+    torch.save(fcgqcnn.state_dict(), f"model_zoo/{Path(path).fname}_conversion.pt")
 
 
 if __name__ == "__main__":

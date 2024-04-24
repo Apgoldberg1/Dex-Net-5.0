@@ -204,21 +204,19 @@ if __name__ == "__main__":
         metavar="MODEL_NAME",
         type=str,
         required=True,
-        help="name of model eg resnet18, dexnet3",
+        help="name of model eg EfficientNet, DexNetBase",
     )
     args = parser.parse_args()
 
     model_path = args.model_path
     model_name = args.model_name
 
-    if model_name.lower() == "dexnet3":
+    if model_name.lower() == "dexnetbase":
         from dexnet.grasp_model import DexNet3 as Model
-    elif model_name.lower() == "resnet18":
-        from dexnet.grasp_model import ResNet18 as Model
     elif model_name.lower() == "efficientnet":
         from dexnet.grasp_model import EfficientNet as Model
     else:
-        raise AssertionError("model_name arg is not supported")
+        raise AssertionError(f"{model_name} as model_name arg is not supported")
 
     getModelSummary()
 
@@ -226,12 +224,15 @@ if __name__ == "__main__":
     from dexnet.torch_dataset import Dex3Dataset as Dataset
     gt_thresh = .2
 
+    """
+    Uncomment for Dex2Dataset and parallel jaw analysis
+    """
     # from dexnet.torch_dataset import Dex2Dataset as Dataset
     # dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")
     # gt_thresh = .2
 
     # print("Getting data statistics")
-    # dataStatsMain(dataset_path, .002)
+    # dataStatsMain(dataset_path, .2)
 
     print("Creating precision recall curve")
     precisionMain(model_path, dataset_path, gt_thresh, ordered_split=True)

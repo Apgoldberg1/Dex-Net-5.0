@@ -5,9 +5,8 @@ import torch
 import numpy as np
 import math
 from dexnet.grasp_model import fakeSuctionFCGQCNN
-#from dexnet.grasp_model import DexNet3FCGQCNN as FCGQCNN
 from dexnet.grasp_model import HighRes as FCGQCNN
-from dexnet.grasp_model import DexNet3
+from dexnet.grasp_model import DexNetBase as GQCNN
 import matplotlib.pyplot as plt
 import cv2
 import os
@@ -21,7 +20,7 @@ def processNumpy(img):
     """
     example preprocessing for numpy depth image shape (width, height, 1) before inference
     blurs, normalizes, resizes, pads, and converts to tensor
-    NOT batched operation.
+    NOT a batched operation.
     """
     img = blur(img)
     img = (img - img.mean()) / img.std()
@@ -43,7 +42,7 @@ def blur(img):
     return img
 
 def main(fcgqcnn_weights_path, dexnet3_weights_path, img):
-    gqcnn = DexNet3()
+    gqcnn = GQCNN()
     gqcnn.load_state_dict(torch.load(dexnet3_weights_path))
     fake_model = fakeSuctionFCGQCNN(gqcnn)
 
@@ -89,7 +88,6 @@ def main(fcgqcnn_weights_path, dexnet3_weights_path, img):
     plt.tight_layout()
     plt.savefig("outputs/out.png")
     plt.show()
-    
 
 if __name__ == "__main__":
     fcgqcnn_weights_path = "model_zoo/Dex-Net-3-fcgqcnn.pt"
