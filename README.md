@@ -58,7 +58,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 **FC-GQ-CNN**s (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can take in image sizes larger than 32x32 and output a heatmap of grasp confidences in one pass rather than a single value. A fully convolutional structure allows for faster inference over running multiple forward passes with a GQ-CNN. See **Performance Analysis** section for more details.
 
-**DexNetBase** folllows the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). However, unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training. It takes only the 32x32 normalized depth images. 
+**DexNetBase** folllows the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). However, unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training (see **Performance Analysis** for more detail). It takes only the 32x32 normalized depth images. 
 
 **EfficientNet** uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly out performs "DexNetGQCNN" on suction (see **Performance Analysis** section).
 
