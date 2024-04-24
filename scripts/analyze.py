@@ -220,7 +220,7 @@ if __name__ == "__main__":
     else:
         raise AssertionError("model_name arg is not supported")
 
-    # getModelSummary()
+    getModelSummary()
 
     dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
     from dexnet.torch_dataset import Dex3Dataset as Dataset
