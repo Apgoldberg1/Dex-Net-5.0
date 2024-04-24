@@ -50,7 +50,7 @@ Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The da
 
 ### Configs
 
-The configs include YAML files specifying model name, save name, dataset path, optimizer, wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 datasets.
+The configs include YAML files specifying model name, save name, dataset path, optimizer, wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 dataset.
 
 ## 🧠 Grasp Models
 
@@ -77,12 +77,14 @@ Training with the original architecture (Dex-Net Base) matches the performance d
 - 18 million parameters
 - 999 inferences per second on single V100 (32GB)
 - 6 hours of training on single RTX 2080 Ti
+- Batch size of 256
 - Trained with SGD and 0.9 momentum
 
 #### EfficientNet GQ-CNN
 - 5.3 million parameters
 - 999 inferences per second on single V100 (32GB)
 - 30 hours of training on single RTX 2080 Ti
+- Batch size of 64
 - Trained with Adam optimizer
 
 Note that while EfficientNet is a smaller model, it scales input images to (B, 3, 224, 224) which prevents larger batch sizes.
