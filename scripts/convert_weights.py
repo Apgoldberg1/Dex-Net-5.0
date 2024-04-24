@@ -30,7 +30,7 @@ def convert_model(path: Path):
     if not os.path.exists("model_zoo"):
         os.makedirs("model_zoo")
 
-    torch.save(fcgqcnn.state_dict(), f"model_zoo/{Path(path).fname}_conversion.pt")
+    torch.save(fcgqcnn.state_dict(), f"model_zoo/{Path(path).fname}_conversion.pth")
 
 
 if __name__ == "__main__":
