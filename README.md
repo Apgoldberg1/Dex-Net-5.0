@@ -1,12 +1,12 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
 Dex-Net 5.0 is a PyTorch implementation to train on the Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides faster data-loading, training, and inference over the original implementations. The models take normalized single channel depth images as input, and output grasp confidences.
 
-## Original Work
+## 📝 Original Work
 Dex-Net 5.0 is an extension of previous work which can be found here:
 
 📋 [Dex-Net Project Website](https://berkeleyautomation.github.io/dex-net/) $\~\~\~\~$ 📚 [Dex-Net Documentation](https://berkeleyautomation.github.io/dex-net/code.html)  $\~\~\~\~$ 📦 [Dex-Net Package GitHub](https://github.com/BerkeleyAutomation/dex-net)
 
-## Project Setup
+## 🚧 Project Setup
 
 View PyTorch's [Getting Started Page](https://pytorch.org/get-started/locally/) for PyTorch installation options
 
@@ -23,7 +23,7 @@ The model weights for suction and parallel jaw grasp models can be found [here](
 Other published datasets and mesh files from previous works can be found [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
 
 
-## Usage
+## 🛠️ Usage
 
 ### train_model.py
 
@@ -52,11 +52,11 @@ Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The da
 
 The configs include YAML files specifying model name, save name, dataset path, optimizer, wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 datasets.
 
-## Grasp Models
+## 🧠 Grasp Models
 
-GQ-CNNs (Grasp Quality Convolutional Neural Networks) are models which use a CNN backbone to predict grasp confidence scores. In Dex-Net 5.0 models labelled GQ-CNN take in 32x32 images as input and output a single grasp confidence value associated with the center of the image.
+**GQ-CNN**s (Grasp Quality Convolutional Neural Networks) are models which use a CNN backbone to predict grasp confidence scores. In Dex-Net 5.0 models labelled GQ-CNN take in 32x32 images as input and output a single grasp confidence value associated with the center of the image.
 
-FC-GQ-CNNs (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can take in image sizes larger than 32x32 and output a heatmap of grasp confidences in one pass rather than a single value. A fully convolutional structure allows for faster inference over running multiple forward passes with a GQ-CNN. See **Performance Analysis** section for more details.
+**FC-GQ-CNN**s (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can take in image sizes larger than 32x32 and output a heatmap of grasp confidences in one pass rather than a single value. A fully convolutional structure allows for faster inference over running multiple forward passes with a GQ-CNN. See **Performance Analysis** section for more details.
 
 **DexNetGQCNN** is an implementation similar to the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). Unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training. It takes only the 32x32 normalized depth images.
 
@@ -66,17 +66,17 @@ FC-GQ-CNNs (Fully Convolutional Grasp Quality Neural Networks) are fully convolu
 
 **fakeFCGQCNN** runs a provided GQCNN across each 32x32 crop of an image to return a grasp confidence heatmap. This model is inefficient and is intended for testing and benchmarking purposes.
 
-## Performance Analysis
+## 🔍 Performance Analysis
 
-### Suction
+### 🪠 Suction
 Training times, dataset load times, efficientnet, original, and gqcnn prec recall curves
 
-### Parallel Jaw
+### 🦈 Parallel Jaw
 Training times, dataset load times, original, and gqcnn prec recall curves
 
-### Inference Speed
+### 🕙 Inference Speed
 
-### Angle Analysis
+### 📐 Angle Analysis
 INCLUDE RYAN'S TRAINING CURVES
 
 
