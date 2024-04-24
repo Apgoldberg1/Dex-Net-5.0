@@ -1,5 +1,5 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
-Dex-Net 5.0 is a PyTorch implementation to train on the Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides faster data-loading, training, and inference over the original implementations. The models take normalized single channel depth images as input, and output grasp confidences.
+Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides faster data-loading, training, and inference over the original implementations. The models take normalized single channel depth images as input, and output grasp confidences. This repo implements a model architecture similar to the original GQ-CNN architecture and a new EfficientNet-based GQ-CNN architecture. It also provides an FC-GQ-CNN architecture for grasp quality heatmap generation along with the training code for the models.
 
 ## 📝 Original Work
 Dex-Net 5.0 is an extension of previous work which can be found here:
@@ -22,6 +22,7 @@ The model weights for suction and parallel jaw grasp models can be found [here](
 
 Other published datasets and mesh files from previous works can be found [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
 
+## 🏁 Getting Started Notebook (GettingStarted.ibpynb)
 
 ## 🛠️ Usage
 
@@ -47,6 +48,9 @@ Defines models. Models take in a batch of normalized single channel depth images
 ### torch_dataset.py
 
 Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The dataset contains cropped 32x32 depth images of single objects paired with a grasp confidence score. For Dex-Net 2.0 data, this grasp metric corresponds to a parallel jaw grasp centered at the middle of the image and with the grasp axis horizontally on the image. For Dex-Net 3.0 suction data, this score corresponds to a suction grasp at the center of the image with the approach axis aligned to the middle column. See [Dex-Net 2.0](https://arxiv.org/abs/1703.09312) and [Dex-Net 3.0](https://arxiv.org/abs/1709.06670) for more details on dataset generation.
+
+### convert_weights.py
+
 
 ### Configs
 
