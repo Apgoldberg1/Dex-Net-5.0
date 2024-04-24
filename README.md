@@ -71,7 +71,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 ### 🪠 Suction
 ![suction precision recall curve comparison](README_Images/Suction_GQCNN_Comparison)
 
-Training with the original architecture (Dex-Net Base) matches the performance documented in Dex-Net 3.0. EfficientNet GQ-CNN outperfors both models on the dataset. Precision recall curves are computed from a validation set containing separate objects from the train set.
+*Training with the original architecture (Dex-Net Base) matches the performance documented in Dex-Net 3.0. EfficientNet GQ-CNN outperforms both models on the Dex-Net 3.0 dataset. Precision recall curves are computed from a validation set containing separate objects from the train set.*
 
 #### Dex-Net Base
 - 18 million parameters
@@ -97,5 +97,5 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 ### 📐 Angle Analysis
 ![training with and without angle and z distance comparison](README_Images/AngleNoAnglePlot.png)
 
-Training on the Dex-Net 3.0 dataset without the gripper approach angle and gripper z distance shows no clear change from our baseline (dex3_newaug) which receives both as input.
+*Training on the Dex-Net 3.0 dataset without the gripper approach angle and gripper z distance shows no clear change from our baseline (dex3_newaug) which receives both as input.*
 
