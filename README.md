@@ -8,7 +8,7 @@ Dex-Net 5.0 is an extension of previous work which can be found here:
 
 ## 🚧 Project Setup
 
-View PyTorch's [Getting Started Page](https://pytorch.org/get-started/locally/) for PyTorch installation options
+View [PyTorch's Getting Started Page](https://pytorch.org/get-started/locally/) for PyTorch installation options
 
 ```
 git clone https://github.com/BerkeleyAutomation/dexnew.git
@@ -22,9 +22,12 @@ The model weights for suction and parallel jaw grasp models can be found [here](
 
 Other published datasets and mesh files from previous works can be found [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
 
-## 🏁 Getting Started Notebook (GettingStarted.ibpynb)
 
 ## 🛠️ Usage
+
+### Getting Started Notebook (GettingStarted.ibpynb)
+
+A quickstart notebook to run GQ-CNN inference on the Dex-Net datset and FC-GQ-CNN inference on an example depth image.
 
 ### train_model.py
 
@@ -51,6 +54,13 @@ Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The da
 
 ### convert_weights.py
 
+Convert GQ-CNN weights to FC-GQ-CNN weights. Saves converted model to   `outputs/fcgqcnn_conversion.pt`
+
+```
+python3 scripts/convert_weights.py --model_path PATH_TO_MODEL
+```
+
+This is only supported for DexNetBase weights.
 
 ### Configs
 
