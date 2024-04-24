@@ -77,7 +77,7 @@ Training with the original architecture (Dex-Net Base) matches the performance d
 - 18 million parameters
 - 999 inferences per second
 - 6 hours of training on single RTX 2080 Ti
-- Trained with SGD and .9 momentum
+- Trained with SGD and 0.9 momentum
 
 #### EfficientNet GQ-CNN
 - 5.3 million parameters
