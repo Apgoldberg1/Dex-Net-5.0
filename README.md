@@ -94,7 +94,7 @@ Training times, dataset load times, original, and gqcnn prec recall curves
 ### 🕙 Inference Speed
 
 ### 📐 Angle Analysis
-![training with and without angle and z distance comparison](README_Images/AngleNoAnglePlot)
+![training with and without angle and z distance comparison](README_Images/AngleNoAnglePlot.png)
 
-Training on the Dex-Net 3.0 dataset without the suction gripper approach angle and gripper z distance shows no clear change from our baseline (dex3_newaug) which receives both as input.
+Training on the Dex-Net 3.0 dataset without the gripper approach angle and gripper z distance shows no clear change from our baseline (dex3_newaug) which receives both as input.
 
