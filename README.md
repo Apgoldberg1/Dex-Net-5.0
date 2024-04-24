@@ -16,9 +16,9 @@ cd Dex-Net-5.0
 pip install -e .
 ```
 
-The Dex-Net dataset used for this repository for training can be downloaded [here]()
+The version of the Dex-Net 2.0 and 3.0 dataset used for training in this repository can be downloaded [here](https://drive.google.com/file/d/1sQakDHBZDr9tZECQH6xS0BnhzS5nNRJG/view?usp=sharing) 
 
-The model weights for suction and parallel jaw grasp models can be found [here]() (see **Grasp Models** section for model details).
+The model weights for suction and parallel jaw grasp models can be found [here](https://drive.google.com/drive/folders/1FKs4O_Ss6NIEOa5PqrsZL8kbmZ_JxkuB?usp=sharing)
 
 Other published datasets and mesh files from previous works can be found [here](https://drive.google.com/drive/u/1/folders/1-6o1-AlZs-1WWLreMa1mbWnXoeIEi14t)
 
@@ -58,7 +58,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 **FC-GQ-CNN**s (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can take in image sizes larger than 32x32 and output a heatmap of grasp confidences in one pass rather than a single value. A fully convolutional structure allows for faster inference over running multiple forward passes with a GQ-CNN. See **Performance Analysis** section for more details.
 
-**DexNetGQCNN** is an implementation similar to the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). Unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training. It takes only the 32x32 normalized depth images.
+**DexNetBase** folllows the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). However, unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training. It takes only the 32x32 normalized depth images. 
 
 **EfficientNet** uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly out performs "DexNetGQCNN" on suction (see **Performance Analysis** section).
 
@@ -69,9 +69,24 @@ The configs include YAML files specifying model name, save name, dataset path, o
 ## 🔍 Performance Analysis
 
 ### 🪠 Suction
-Training times, dataset load times, efficientnet, original, and gqcnn prec recall curves
+![suction precision recall curve comparison](README_Images/Suction_GQCNN_Comparison)
 
-![suction precision recall curve comparison](README_Images/Suction_GQCNN_Comparison.jpg)
+Training with the original architecture (Dex-Net Base) matches the performance documented in Dex-Net 3.0. EfficientNet GQ-CNN outperfors both models on the dataset. Precision recall curves are computed from a validation set containing separate objects from the train set.
+
+#### Dex-Net Base
+- 18 million parameters
+- 999 inferences per second
+- 6 hours of training on single RTX 2080 Ti
+- Trained with SGD and .9 momentum
+
+#### EfficientNet GQ-CNN
+- 5.3 million parameters
+- 999 inferences per second
+- 30 hours of training on single RTX 2080 Ti
+- Trained with Adam optimizer
+
+Note that while EfficientNet is a smaller model, it scales input images to (B, 3, 224, 224) which prevents larger batch sizes.
+
 
 ### 🦈 Parallel Jaw
 Training times, dataset load times, original, and gqcnn prec recall curves
@@ -79,6 +94,7 @@ Training times, dataset load times, original, and gqcnn prec recall curves
 ### 🕙 Inference Speed
 
 ### 📐 Angle Analysis
-INCLUDE RYAN'S TRAINING CURVES
+![training with and without angle and z distance comparison](README_Images/AngleNoAnglePlot)
 
+Training on the Dex-Net 3.0 dataset without the suction gripper approach angle and gripper z distance shows no clear change from our baseline (dex3_newaug) which receives both as input.
 
