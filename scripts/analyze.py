@@ -134,7 +134,7 @@ def precisionMain(model_path, dataset_path, gt_thresh, ordered_split=False):
 
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
-    batch_size = 2048
+    batch_size = 64
 
     if ordered_split:
         val_sampler = SubsetRandomSampler(torch.arange(0, val_size))
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     model_name = args.model_name
 
     if model_name.lower() == "dexnetbase":
-        from dexnet.grasp_model import DexNet3 as Model
+        from dexnet.grasp_model import DexNetBase as Model
     elif model_name.lower() == "efficientnet":
         from dexnet.grasp_model import EfficientNet as Model
     else:
