@@ -60,7 +60,7 @@ This is only supported for DexNetBase weights.
 
 ### analyze.py
 
-Contains functions to generate precision-recall curves and compute the mean and standard deviation over the datset.
+Contains functions to generate precision-recall curves and compute the mean and standard deviation over the dataset.
 
 ```
 python3 scripts/analyze.py --model_path PATH_TO_MODEL --model_name [DexNetGQCNN, EfficientNet]
@@ -101,7 +101,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 - 18 million parameters
 - 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080Ti
 - 6 hours of training on a single 2080 Ti
-- Trained with batch size of 256
+- Trained with a batch size of 256
 - Trained with SGD and 0.9 momentum
 - FC-GQ-CNN version available
 
