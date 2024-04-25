@@ -54,7 +54,7 @@ Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The da
 
 ### convert_weights.py
 
-Convert GQ-CNN weights to FC-GQ-CNN weights. Saves converted model to   `outputs/fcgqcnn_conversion.pt`
+Convert GQ-CNN weights to FC-GQ-CNN weights. Saves converted model to   `outputs/{file_name}_conversion.pt`
 
 ```
 python3 scripts/convert_weights.py --model_path PATH_TO_MODEL
