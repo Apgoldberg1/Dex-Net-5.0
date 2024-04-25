@@ -41,56 +41,68 @@ def blur(img):
 
     return img
 
-def main(fcgqcnn_weights_path, dexnet3_weights_path, img):
-    gqcnn = GQCNN()
-    gqcnn.load_state_dict(torch.load(dexnet3_weights_path))
-    fake_model = fakeSuctionFCGQCNN(gqcnn)
-
+def main(fcgqcnn_weights_path, img, device):
     fcgqcnn = FCGQCNN()
     fcgqcnn.load_state_dict(torch.load(fcgqcnn_weights_path))
 
     x_show = img
-    print(img.shape)
     x = processNumpy(img)
-    x = torch.stack([x,x,x]) # add batch dim
-    print(x.shape)
+    x = torch.unsqueeze(0)
+
     assert len(x.shape) == 4, f"shape should be (batch, 1, x, y), but shape is {x.shape}"
-    x = x.to("cuda")
+    x = x.to(device)
 
     fcgqcnn.eval()
-    fcgqcnn.to("cuda")
-    fake_model.eval()
-    fake_model.to("cuda")
+    fcgqcnn.to(device)
     with torch.no_grad():
         output = fcgqcnn(x)[0]
-        output_fake = fake_model(x)[0]
 
-    output = output.to("cpu")
+    output = output.cpu()
     print("output shape", output.shape)
-    output_fake = output_fake.to("cpu")
 
     if not os.path.exists("outputs"):
         os.makedirs("outputs")
     torch.save(output.numpy(), "outputs/fcgqcnn.npy")
-    torch.save(output_fake.numpy(), "outputs/fake_fcgqcnn.npy")
 
-    fig, axes = plt.subplots(1, 3, figsize=(10, 8))
+    fig, axes = plt.subplots(1, 2, figsize=(10, 8))
 
     axes[0].imshow(output.numpy().squeeze(), cmap="gray")
     axes[0].axis('off')
 
-    axes[1].imshow(output_fake.numpy().squeeze(), cmap="gray")
+    axes[1].imshow(x_show.squeeze(), cmap="gray")
     axes[1].axis('off')
-
-    axes[2].imshow(x_show.squeeze(), cmap="gray")
-    axes[2].axis('off')
 
     plt.tight_layout()
     plt.savefig("outputs/out.png")
     plt.show()
 
 if __name__ == "__main__":
-    fcgqcnn_weights_path = "model_zoo/Dex-Net-3-fcgqcnn.pt"
-    dexnet3_weights_path = "model_zoo/Dex-Net-3-gqcnn.pth"
-    img = np.load("mesh_data_dir/depth/np_0.npy")
-    main(fcgqcnn_weights_path, dexnet3_weights_path, img)
+    import argparse
+    parser = argparse.ArgumentParser(description="Process configuration file.")
+    parser.add_argument(
+        "--model_path",
+        dest="model_path",
+        metavar="MODEL_FILE_PATH",
+        type=str,
+        required=True,
+        help="Path to FC-GQ-CNN model checkpoint",
+    )
+    parser.add_argument(
+        "--img_path",
+        dest="img_path",
+        metavar="IMG_FILE_PATH",
+        type=str,
+        required=True,
+        help="Grey-scale depth image JPG",
+    )
+
+    args = parser.parse_args()
+    fcgqcnn_weights_path = args.model_path
+    img = cv2.imread(args.img_path)
+    img = np.mean(img, axis=-1).unsqueeze(-1)
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device == "cpu":
+        print("WARNING: running inference on cpu")
+
+    main(fcgqcnn_weights_path, img, device)
