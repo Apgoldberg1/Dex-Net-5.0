@@ -76,7 +76,7 @@ Script to visualize Dex-Net 2.0 or Dex-Net 3.0 dataset. Saves 10 plots, each wit
 
 ### fcgqcnn.py
 
-Script to run inference on a grey scale depth image.
+Script to run inference on a grey scale depth image. The output image is saved to `outputs/fcgqcnn_out.png`
 
 ```
 python3 scripts/fcgqcnn.py --model_path PATH_TO_MODEL --img PATH_TO_IMG
