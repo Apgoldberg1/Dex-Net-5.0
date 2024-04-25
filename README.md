@@ -74,6 +74,14 @@ Script to benchmark the inference speed of models on random image-shaped data.
 
 Script to visualize Dex-Net 2.0 or Dex-Net 3.0 dataset. Saves 10 plots, each with 25 random images and their labels to "outputs" folder. Adjust dataset path as necessary.
 
+### fcgqcnn.py
+
+Script to run inference on a grey scale depth image.
+
+```
+python3 scripts/fcgqcnn.py --model_path PATH_TO_MODEL --img PATH_TO_IMG
+```
+
 ### Configs
 
 The configs include YAML files specifying model name, save name, dataset path, optimizer, Wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 dataset.
