@@ -54,7 +54,7 @@ Provides PyTorch dataset to load the Dex-Net 3.0 and Dex-Net 2.0 dataset. The da
 
 ### convert_weights.py
 
-Convert GQ-CNN weights to FC-GQ-CNN weights. Saves converted model to   `outputs/fcgqcnn_conversion.pt`
+Convert GQ-CNN weights to FC-GQ-CNN weights. Saves converted model to   `outputs/{file_name}_conversion.pt`
 
 ```
 python3 scripts/convert_weights.py --model_path PATH_TO_MODEL
@@ -83,33 +83,42 @@ The configs include YAML files specifying model name, save name, dataset path, o
 ## 🔍 Performance Analysis
 
 ### 🪠 Suction
-![suction precision recall curve comparison](README_Images/Suction_GQCNN_Comparison)
+![suction precision recall curve comparison](README_images/Suction_GQCNN_Comparison)
 
 *Training with the original architecture (Dex-Net Base) matches the performance documented in Dex-Net 3.0. EfficientNet GQ-CNN outperforms both models on the Dex-Net 3.0 dataset. Precision recall curves are computed from a validation set containing separate objects from the train set.*
 
 #### Dex-Net Base
 - 18 million parameters
-- 999 inferences per second on single V100 (32GB)
-- 6 hours of training on single RTX 2080 Ti
-- Batch size of 256
+- 17600 (batch size 512), 22680 (batch size 8192) inferences per second on single 2080Ti
+- 6 hours of training on single 2080 Ti
+- Trained wih batch size of 256
 - Trained with SGD and 0.9 momentum
 
 #### EfficientNet GQ-CNN
 - 5.3 million parameters
-- 999 inferences per second on single V100 (32GB)
-- 30 hours of training on single RTX 2080 Ti
-- Batch size of 64
+- 1780 (batch size 512) inferences per second on single 2080Ti
+- 30 hours of training on single 2080 Ti
+- Train with batch size of 64
 - Trained with Adam optimizer
 
 Note that while EfficientNet is a smaller model, it scales input images to (B, 3, 224, 224) which prevents larger batch sizes.
 
-
 ### 🦈 Parallel Jaw
 
-### 🕙 FC-GQCNN Inference Speed
+### 🕙 FC-GQ-CNN Inference Speed
+
+13.2 inferences per second (batch size 512, 70x70 images) for naive method
+xxx inferences per second (batch size 512, 70x70 images) for fc-gq-cnn
+43x speedup
+6.4 inferences per second (batch size 512, 90x90 images) for naive
+xxx inferences per second for fc-gq-cnn
+
+2.6 inferences per second (batch size 128, 120x120 images) for naive
+
+Note that at larger batch sizes, FC-GQ-CNN will experience a signifcant slowdown.
 
 ### 📐 Angle Analysis
-![training with and without angle and z distance comparison](README_Images/AngleNoAnglePlot.png)
+![training with and without angle and z distance comparison](README_images/AngleNoAnglePlot.png)
 
 *Training on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs shows no clear change from our baseline (dex3_newaug) which receives both as input.*
 
