@@ -70,6 +70,10 @@ python3 scripts/analyze.py --model_path PATH_TO_MODEL --model_name [DexNetGQCNN,
 
 Script to benchmark the inference speed of models on random image-shaped data.
 
+### visualize_dataset.py
+
+Script to visualize Dex-Net 2.0 or Dex-Net 3.0 dataset. Saves 10 plots, each with 25 random images and their labels to "outputs" folder. Adjust dataset path as necessary.
+
 ### Configs
 
 The configs include YAML files specifying model name, save name, dataset path, optimizer, Wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 dataset.
