@@ -1,16 +1,10 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
-Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides improved perfomance and ease of use over the orginal codebase. Dex-Net grasp quality models take normalized single channel depth images as input and output grasp confidences. This repo implements a model similar to the original GQ-CNN architecture along with a new EfficientNet-based GQ-CNN architecture. It also provides an FC-GQ-CNN architecture for grasp quality heatmap generation and training code + analysis scripts for the models.
+Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides improved perfomance and ease of use over the orginal codebase. Dex-Net grasp quality models take normalized single channel depth images as input and output grasp confidences. This repo implements a model similar to the original GQ-CNN (Grasp Quality Convolutional Neural Network) architecture along with a new EfficientNet-based GQ-CNN architecture. It also provides an FC-GQ-CNN (Fuly Convolutional Grasp Quality Neural Netowrk) architecture for grasp quality heatmap generation and training code + analysis scripts for the models.
 
 ## 📝 Original Work
 Dex-Net 5.0 is an extension of previous work which can be found here:
 
 📋 [Dex-Net Project Website](https://berkeleyautomation.github.io/dex-net/) $\~\~\~\~$ 📚 [Dex-Net Documentation](https://berkeleyautomation.github.io/dex-net/code.html)  $\~\~\~\~$ 📦 [Dex-Net Package GitHub](https://github.com/BerkeleyAutomation/dex-net)
-
-## 🖼️ Background
-
-**GQ-CNN**s (Grasp Quality Convolutional Neural Networks) are models which use a CNN backbone to predict grasp confidence scores. In Dex-Net 5.0 models labelled GQ-CNN take 32x32 images as input and output a single grasp confidence value associated with the center of the image.
-
-**FC-GQ-CNN**s (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can process image sizes larger than 32x32 and output a heatmap of grasp confidences in a single pass. A fully convolutional structure allows for faster inference over running multiple forward passes with a typical GQ-CNN. See **Performance Analysis** section for more details.
 
 ## 🚧 Project Setup
 
@@ -79,6 +73,10 @@ Script to benchmark the inference speed of models on random image shaped data.
 The configs include YAML files specifying model name, save name, dataset path, optimizer, wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 dataset.
 
 ## 🧠 Grasp Models
+
+**GQ-CNN**s (Grasp Quality Convolutional Neural Networks) are models which use a CNN backbone to predict grasp confidence scores. In Dex-Net 5.0 models labelled GQ-CNN take 32x32 images as input and output a single grasp confidence value associated with the center of the image.
+
+**FC-GQ-CNN**s (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can process image sizes larger than 32x32 and output a heatmap of grasp confidences in a single pass. A fully convolutional structure allows for faster inference over running multiple forward passes with a typical GQ-CNN. See **Performance Analysis** section for more details.
 
 **DexNetBase** folllows the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). However, unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training (see **Performance Analysis** for more detail). It takes only the 32x32 normalized depth images. 
 
@@ -149,4 +147,3 @@ Note that at larger batch sizes, FC-GQ-CNN may experience a signifcant slowdown 
 ![training with and without angle and z distance comparison](README_images/AngleNoAnglePlot.png)
 
 *Training on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs shows no clear change from our baseline (dex3_newaug) which receives both as input.*
-
