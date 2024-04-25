@@ -84,7 +84,9 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 **EfficientNet** uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly out performs "DexNetGQCNN" on suction (see **Performance Analysis** section).
 
-**DexNetFCGQCNN** is a fully convolutional network which takes a batch of normalized depth images which may be larger than 32x32 and returns a grasp confidence heatmap. DexNet GQ-CNN weights can be converted to Dex-Net FC-GQ-CNN weights using convert_weights.py. This can be done for both suction and parallel jaw grasp models.
+**BaseFCGQCNN** is a fully convolutional network which takes a batch of normalized depth images which may be larger than 32x32 and returns a grasp confidence heatmap. DexNet GQ-CNN weights can be converted to Dex-Net FC-GQ-CNN weights using convert_weights.py. This can be done for both suction and parallel jaw grasp models.
+
+**HighResFCGQCNN** is a fully convolutional network which outputs higher resolution grasp maps compared to BaseFCGQCNN. It uses a an offsetting trick to prevent dimension reduction from the max-pool layer.
 
 **fakeFCGQCNN** runs a provided GQCNN across each 32x32 crop of an image to return a grasp confidence heatmap. This model is inefficient and is intended for testing and benchmarking purposes.
 
