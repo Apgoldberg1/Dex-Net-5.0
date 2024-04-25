@@ -1,7 +1,7 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
 Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides improved perfomance and ease of use over the orginal codebase. Dex-Net grasp quality models take normalized single channel depth images as input and output grasp confidences. This repo implements a model similar to the original GQ-CNN (Grasp Quality Convolutional Neural Network) architecture along with a new EfficientNet-based GQ-CNN architecture. It also provides an FC-GQ-CNN (Fuly Convolutional Grasp Quality Neural Netowrk) architecture for grasp quality heatmap generation and training + analysis code for the models.
 
-## 📝 Original Work
+## 📚 Original Work
 Dex-Net 5.0 is an extension of previous work which can be found here:
 
 📋 [Dex-Net Project Website](https://berkeleyautomation.github.io/dex-net/) $\~\~\~\~$ 📚 [Dex-Net Documentation](https://berkeleyautomation.github.io/dex-net/code.html)  $\~\~\~\~$ 📦 [Dex-Net Package GitHub](https://github.com/BerkeleyAutomation/dex-net)
@@ -147,3 +147,16 @@ Note that at larger batch sizes, FC-GQ-CNN may experience a signifcant slowdown 
 ![training with and without angle and z distance comparison](README_images/AngleNoAnglePlot.png)
 
 *Training on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs shows no clear change from our baseline (dex3_newaug) which receives both as input.*
+
+## 📝 Citation
+Please cite this repo when using its code.
+```
+@misc{Dex-Net 5.0,
+  author = {Andrew Goldberg, Ryan Hoque, Chung Min Kim},
+  title = {Dex-Net 5.0},
+  year = {2024},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/BerkeleyAutomation/Dex-Net-5.0}},
+}
+```
