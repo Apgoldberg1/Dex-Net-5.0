@@ -5,42 +5,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def img_dim_scale_plot(fcgqcnn, fake_fcgqcnn):
-    loops = 20
-    batch = 50
+    loops = 10
+    batch = 100
 
     time_log1, time_log2 = [[],[],[]], []
 
     with torch.no_grad():
         # warm-up inference
         fcgqcnn(torch.zeros(1, 1, 40, 40).to("cuda"))
-        start_dim, end_dim, step = 40, 80, 10
+        start_dim, end_dim, step = 35, 100, 5
 
-        # print(f"fcgqcnn {loops} loops of batch size {batch} of varying image sizes")
-        # for i in range(3):
-        #     for img_dim in range(start_dim, end_dim, step):
-        #         start = time.time()
-        #         for _ in range(loops):
-        #             data = torch.rand((batch, 1, img_dim, img_dim)).to(device)
-        #             fcgqcnn(data)
-        #         print("time:", time.time() - start)
-        #         time_log1[i].append(time.time() - start)
-        # time_log1 = np.array(time_log1)
-        # time_log1 = np.mean(time_log1, axis=0)
-
-        # warm-up inference
-        fake_fcgqcnn(torch.zeros(1, 1, 40, 40).to("cuda"))
-
-        print(f"fake-fcgqcnn {loops} loops of batch size {batch} of varying image sizes")
-        
-        # We do one less step because it takes too long!
-        for img_dim in range(start_dim, end_dim, step):
-            start = time.time()
-            for _ in range(loops):
-                data = torch.rand((batch, 1, img_dim, img_dim)).to(device)
-                fake_fcgqcnn(data)
-            print("time:", time.time() - start)
-            time_log2.append(time.time() - start)
-
+        print(f"fcgqcnn {loops} loops of batch size {batch} of varying image sizes")
+        for i in range(3):
+            for img_dim in range(start_dim, end_dim, step):
+                start = time.time()
+                for _ in range(loops):
+                    data = torch.rand((batch, 1, img_dim, img_dim)).to(device)
+                    fcgqcnn(data)
+                print("time:", time.time() - start)
+                time_log1[i].append(time.time() - start)
+        time_log1 = np.array(time_log1)
+        time_log1 = np.mean(time_log1, axis=0)
 
     # plt.plot(list(range(start_dim, end_dim, step)), time_log1, label = "FC-GQ-CNN")
     # plt.title("FC-GQ-CNN Scaling")
