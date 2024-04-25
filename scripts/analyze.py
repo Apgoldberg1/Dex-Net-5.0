@@ -218,7 +218,7 @@ if __name__ == "__main__":
     else:
         raise AssertionError(f"{model_name} as model_name arg is not supported")
 
-    getModelSummary()
+    # getModelSummary()
 
     dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
     from dexnet.torch_dataset import Dex3Dataset as Dataset
@@ -227,8 +227,8 @@ if __name__ == "__main__":
     """
     Uncomment for Dex2Dataset and parallel jaw analysis
     """
-    # from dexnet.torch_dataset import Dex2Dataset as Dataset
-    # dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")
+    # from dexnet.torch_dataset import dex2dataset as dataset
+    # dataset_path = path("dataset/dexnet_2/dexnet_2_tensor")
     # gt_thresh = .2
 
     # print("Getting data statistics")
