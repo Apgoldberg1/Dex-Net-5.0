@@ -116,9 +116,11 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 
 ### 🦈 Parallel Jaw
 
-![Dex-Net 2.0 dataset precision-recall curve](README_images/dex2_precision_recall.jpg)
-
-*Precision-recall curve on validation data for the Dex-Net 5.0 parallel jaw grasp model (DexNetBase) trained on an 80-20 split of the Dex-Net 2.0 dataset. There isn't a comparable precision-recall curve from the original paper, but both achieve ~85% accuracy on the valdation set.*
+<p align="center">
+  <img alt="FC-GQ-CNN Vs. Naive Scaling" src="README_images/dex2_precision_recall.jpg"><br><br>
+  <i>Precision-recall curve on validation data for the Dex-Net 5.0 parallel jaw grasp model (DexNetBase) trained on an 80-20 split of the Dex-Net 2.0 dataset. There isn't a comparable precision-recall curve from the original paper, but both achieve ~85% accuracy on the valdation set.</i>
+  <br><br>
+</p>
 
 **Dex-Net Base Parallel Jaw**
 - 18 million parameters
