@@ -148,7 +148,7 @@ Note that at larger batch sizes, FC-GQ-CNN may experience a significant slowdown
 
 ![training with and without angle and z distance comparison](README_images/AngleNoAnglePlot.png)
 
-*Training on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs shows no clear change from our baseline (dex3_newaug) which receives both as input.*
+*Models trained on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs show no clear change from our baseline (dex3_newaug) which receives both as input.*
 
 ## 📝 Citation
 Please cite this repo when using its code.
