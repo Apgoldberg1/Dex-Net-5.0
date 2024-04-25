@@ -116,14 +116,12 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 ### 🕙 FC-GQ-CNN Inference Speed
 
 <p align="center">
-  <img alt="FC-GQ-CNN Vs. Naive Scaling" src="README_images/fcgqcnn_time_scale.jpg">
+  <img alt="FC-GQ-CNN Vs. Naive Scaling" src="README_images/fcgqcnn_time_scale.jpg"><br><br>
+  <i>FC-GQ-CNN demonstrates significant empirical efficiency improvements over naively running a GQ-CNN over each crop of the image.</i>
+  <br><br>
 </p>
 
-*FC-GQ-CNN demonstrates significant empirical efficiency improvements over naively running a GQ-CNN over each crop of the image.*
-
-The naive method (called fakeFCGQCNN in code) acheives 13.5 inferences per second (batch size 128, 70x70 images)
-
-FC-GQ-CNN achieves 540 inferences per second, a 22x speedup (batch size 128, 70x70 images)
+The naive method (called fakeFCGQCNN in code) acheives 13.5 inferences per second (batch size 128, 70x70 images). FC-GQ-CNN achieves 540 inferences per second, a 22x speedup (batch size 128, 70x70 images).
 
 Note that at larger batch sizes, FC-GQ-CNN may experience a signifcant slowdown due to memory limitations.
 
