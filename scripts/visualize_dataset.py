@@ -30,6 +30,6 @@ def main(dataset):
 
 if __name__ == "__main__":
     # path to directory containing "tensors" folder
-    dataset_path = Path("../dataset/dexnet_3/dexnet_09_13_17")
+    dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
     dataset = DexDataset(dataset_path)
     main(dataset)
