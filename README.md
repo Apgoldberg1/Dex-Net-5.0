@@ -25,7 +25,7 @@ Other published datasets and mesh files from previous works can be found [here](
 
 ## 🛠️ Usage
 
-### Getting Started Notebook (GettingStarted.ibpynb)
+### Getting Started Notebook (GettingStarted.ipynb)
 
 A quickstart notebook to run GQ-CNN inference on the Dex-Net datset and FC-GQ-CNN inference on an example depth image.
 
