@@ -60,7 +60,7 @@ This is only supported for DexNetBase weights.
 
 ### analyze.py
 
-Contains functions to generate precision recall curves and compute the mean and std over the datset.
+Contains functions to generate precision-recall curves and compute the mean and std over the datset.
 
 ```
 python3 scripts/analyze.py --model_path PATH_TO_MODEL --model_name [DexNetGQCNN, EfficientNet]
@@ -93,16 +93,17 @@ The configs include YAML files specifying model name, save name, dataset path, o
 ## 🔍 Performance Analysis
 
 ### 🪠 Suction
-![suction precision recall curve comparison](README_images/Suction_GQCNN_Comparison.jpg)
+![suction precision-recall curve comparison](README_images/Suction_GQCNN_Comparison.jpg)
 
-*Training with the original architecture (Dex-Net Base) matches the performance documented in Dex-Net 3.0. EfficientNet GQ-CNN outperforms both models on the Dex-Net 3.0 dataset. Precision recall curves are computed from a validation set containing separate objects from the train set.*
+*Training with the original architecture (Dex-Net Base) matches the performance documented in Dex-Net 3.0. EfficientNet GQ-CNN outperforms both models on the Dex-Net 3.0 dataset. Precision-recall curves are computed from a validation set containing separate objects from the train set.*
 
-#### Dex-Net Base
+#### Dex-Net Base Suction
 - 18 million parameters
 - 10240 (batch size 512), 24100 (batch size 8192) inferences per second on single 2080Ti
 - 6 hours of training on single 2080 Ti
 - Trained wih batch size of 256
 - Trained with SGD and 0.9 momentum
+- FC-GQ-CNN version available
 
 #### EfficientNet GQ-CNN
 - 5.3 million parameters
@@ -114,6 +115,19 @@ The configs include YAML files specifying model name, save name, dataset path, o
 Note that while EfficientNet is a smaller model, it scales input images to (B, 3, 224, 224) which prevents larger batch sizes.
 
 ### 🦈 Parallel Jaw
+
+![Dex-Net 2.0 dataset precision-recall curve](README_images/dex2_precision_recall.jpg)
+
+*Precision-recall curve on validation data for the Dex-Net 5.0 parallel jaw grasp model (DexNetBase) trained on an 80-20 split of the Dex-Net 2.0 dataset. There isn't a comparable precision-recall curve from the original paper, but both achieve ~85% accuracy on the valdation set.*
+
+**Dex-Net Base Parallel Jaw**
+- 18 million parameters
+- 1 hour of training on a single V100
+- Trained with batch size of 256
+- Trained with SGD and 0.9 momentum
+- FC-GQ-CNN version available
+
+Dex-Net Base Parallel Jaw and Dex-Net Base Suction use the same model architecture.
 
 ### 🕙 FC-GQ-CNN Inference Speed
 
