@@ -1,4 +1,4 @@
-# Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
+# Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Datasets
 Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides improved performance and ease of use over the original codebase. Dex-Net grasp quality models take normalized single channel depth images as input and output grasp confidences. This repo implements a model similar to the original GQ-CNN (Grasp Quality Convolutional Neural Network) architecture along with a new EfficientNet-based GQ-CNN architecture. It also provides an FC-GQ-CNN (Fully Convolutional Grasp Quality Neural Network) architecture for grasp quality heatmap generation and training + analysis code for the models.
 
 This project is created and maintained by [AUTOLab at UC Berkeley](https://autolab.berkeley.edu/)
