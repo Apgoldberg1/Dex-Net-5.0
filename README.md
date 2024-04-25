@@ -1,6 +1,8 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Dataset
 Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides improved perfomance and ease of use over the orginal codebase. Dex-Net grasp quality models take normalized single channel depth images as input and output grasp confidences. This repo implements a model similar to the original GQ-CNN (Grasp Quality Convolutional Neural Network) architecture along with a new EfficientNet-based GQ-CNN architecture. It also provides an FC-GQ-CNN (Fuly Convolutional Grasp Quality Neural Netowrk) architecture for grasp quality heatmap generation and training + analysis code for the models.
 
+This project is created and maintained by [AUTOLab at UC Berkeley](https://autolab.berkeley.edu/)
+
 ## 📚 Original Work
 Dex-Net 5.0 is an extension of previous work which can be found here:
 
@@ -78,15 +80,15 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 **FC-GQ-CNN**s (Fully Convolutional Grasp Quality Neural Networks) are fully convolutional models. In Dex-Net 5.0 these can process image sizes larger than 32x32 and output a heatmap of grasp confidences in a single pass. A fully convolutional structure allows for faster inference over running multiple forward passes with a typical GQ-CNN. See **Performance Analysis** section for more details.
 
-**DexNetBase** folllows the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). However, unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training (see **Performance Analysis** for more detail). It takes only the 32x32 normalized depth images. 
+**DexNetBase** folllows the model described in [Dex-Net 2.0](https://arxiv.org/pdf/1703.09312.pdf). However, unlike the original implementation, it doesn't take the gripper z distance as input because this was not found to impact training (see **Performance Analysis** for more detail). It takes only a batch of 32x32 normalized depth images as input. 
 
-**EfficientNet** uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly out performs "DexNetGQCNN" on suction (see **Performance Analysis** section).
+**EfficientNet** uses PyTorch's efficientnet_b0 implementation with an additional linear layer and softmax. It slightly outperforms "DexNetGQCNN" on suction (see **Performance Analysis** section).
 
 **BaseFCGQCNN** is a fully convolutional network which takes a batch of normalized depth images which may be larger than 32x32 and returns a grasp confidence heatmap. DexNet GQ-CNN weights can be converted to Dex-Net FC-GQ-CNN weights using convert_weights.py. This can be done for both suction and parallel jaw grasp models.
 
 **HighResFCGQCNN** is a fully convolutional network which outputs higher resolution grasp maps compared to BaseFCGQCNN. It uses a an offsetting trick to prevent dimension reduction from the max-pool layer.
 
-**fakeFCGQCNN** runs a provided GQCNN across each 32x32 crop of an image to return a grasp confidence heatmap. This model is inefficient and is intended for testing and benchmarking purposes.
+**fakeFCGQCNN** runs a provided GQ-CNN across each 32x32 crop of an image to return a grasp confidence heatmap. This model is inefficient and is intended for testing and benchmarking purposes.
 
 ## 🔍 Performance Analysis
 
