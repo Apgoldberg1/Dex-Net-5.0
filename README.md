@@ -108,7 +108,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 - 5.3 million parameters
 - 2000 (batch size 512) inferences per second on single 2080Ti
 - 30 hours of training on single 2080 Ti
-- Train with batch size of 64
+- Trained with batch size of 64
 - Trained with Adam optimizer
 
 Note that while EfficientNet is a smaller model, it scales input images to (B, 3, 224, 224) which prevents larger batch sizes.
