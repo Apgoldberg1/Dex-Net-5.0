@@ -91,7 +91,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 ## 🔍 Performance Analysis
 
 ### 🪠 Suction
-![suction precision recall curve comparison](README_images/Suction_GQCNN_Comparison)
+![suction precision recall curve comparison](README_images/Suction_GQCNN_Comparison.jpg)
 
 *Training with the original architecture (Dex-Net Base) matches the performance documented in Dex-Net 3.0. EfficientNet GQ-CNN outperforms both models on the Dex-Net 3.0 dataset. Precision recall curves are computed from a validation set containing separate objects from the train set.*
 
@@ -115,7 +115,7 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 
 ### 🕙 FC-GQ-CNN Inference Speed
 
-![FC-GQ-CNN Vs. Naive Scaling](README_images/fcgqcnn_time_scal.jpg)
+![FC-GQ-CNN Vs. Naive Scaling](README_images/fcgqcnn_time_scale.jpg)
 
 *FC-GQ-CNN demonstrates significant empirical efficiency improvements over naively running a GQ-CNN over each crop of the image.*
 
@@ -125,6 +125,7 @@ FC-GQ-CNN achieves 540 inferences per second, a 22x speedup (batch size 128, 70x
 Note that at larger batch sizes, FC-GQ-CNN may experience a signifcant slowdown due to memory limitations.
 
 ### 📐 Angle Analysis
+
 ![training with and without angle and z distance comparison](README_images/AngleNoAnglePlot.png)
 
 *Training on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs shows no clear change from our baseline (dex3_newaug) which receives both as input.*
