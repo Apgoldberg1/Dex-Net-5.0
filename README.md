@@ -119,7 +119,7 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 
 <p align="center">
   <img alt="FC-GQ-CNN Vs. Naive Scaling" src="README_images/fcgqcnn_time_scale.jpg"><br><br>
-  <i>FC-GQ-CNN demonstrates significant empirical efficiency improvements over naively running a GQ-CNN over each crop of the image.</i>
+  <i>The FC-GQ-CNN demonstrates significant empirical efficiency improvements over naively running a GQ-CNN over each crop of the image.</i>
   <br><br>
 </p>
 
