@@ -159,6 +159,6 @@ Please cite this repo when using its code.
   year = {2024},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/BerkeleyAutomation/Dex-Net-5.0}},
+  howpublished = {\url{https://github.com/Apgoldberg1/Dex-Net-5.0}},
 }
 ```
