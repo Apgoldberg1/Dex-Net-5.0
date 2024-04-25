@@ -8,7 +8,7 @@ class EfficientNet(nn.Module):
         super().__init__()
         self.efficient_net = models.efficientnet_b0()
         self.fc = nn.Linear(1000, 2)
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=1)
     def forward(self, x):
         x = torchvision.transforms.functional.resize(x, (224, 224))
         x = torch.cat([x, x, x], dim=1)
@@ -37,10 +37,8 @@ class DexNetBase(nn.Module):
         self.lrn = nn.LocalResponseNorm(size=2, alpha=2.0e-05, beta=0.75, k=1.0)
         self.fc = nn.Linear(16384, 1024)
         self.fc2 = nn.Linear(1024, 1024)
-        # self.fc3 = nn.Linear(1024, 2)
         self.fc3 = nn.Linear(1024, 1)
 
-        # self.softmax = nn.Softmax(dim=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -65,9 +63,7 @@ class DexNetBase(nn.Module):
         x = self.relu(x)
         x = self.fc3(x)
 
-        # x = self.softmax(x)
         x = self.sigmoid(x)
-        # return x[:, 0]
         return x
 
 class BaseFCGQCNN(nn.Module):
@@ -130,8 +126,6 @@ class HighResFCGQCNN(BaseFCGQCNN):
         x = self.conv2(x)
         x = self.relu(x)
         x = self.lrn(x)
-        # print("pre maxpool shape", x.shape)
-
 
         x1 = torch.clone(x)[:,:,:-1,:-1]
         x2 = torch.clone(x)[:,:,1:, :-1]
@@ -167,7 +161,6 @@ class HighResFCGQCNN(BaseFCGQCNN):
         image4 is right bottom
         """
         assert image1.shape == image2.shape == image3.shape == image4.shape, "Images must have the same shape"
-        print(image1.shape)
 
         # Get the height and width of the images
         batch, channels, height, width = image1.shape

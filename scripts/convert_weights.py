@@ -5,6 +5,7 @@ from dexnet.grasp_model import DexNetBase as model
 from dexnet.grasp_model import BaseFCGQCNN as FCGQCNN
 from pathlib import Path
 import torch
+import os
 
 def convert_model(path: Path):
     model_w = torch.load(path)
@@ -30,7 +31,7 @@ def convert_model(path: Path):
     if not os.path.exists("model_zoo"):
         os.makedirs("model_zoo")
 
-    torch.save(fcgqcnn.state_dict(), f"model_zoo/{Path(path).fname}_conversion.pth")
+    torch.save(fcgqcnn.state_dict(), f"model_zoo/{path.stem}_conversion.pth")
 
 
 if __name__ == "__main__":
