@@ -1,5 +1,5 @@
 """
-Dataset for DexNet3.0 dataset.
+PyTorch Dataset for Dex-Net 2.0 and Dex-Net 3.0 datasets.
 """
 
 import time
