@@ -111,7 +111,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 #### Dex-Net Base Suction
 - 18 million parameters
-- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080Ti
+- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080 Ti
 - 6 hours of training on a single 2080 Ti
 - Trained with a batch size of 256
 - Trained with SGD and 0.9 momentum
@@ -119,7 +119,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 #### EfficientNet GQ-CNN
 - 5.3 million parameters
-- 2000 (batch size 512) inferences per second on a single 2080Ti
+- 2000 (batch size 512) inferences per second on a single 2080 Ti
 - 30 hours of training on a single 2080 Ti
 - Trained with a batch size of 64
 - Trained with Adam optimizer
@@ -137,7 +137,7 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 
 **Dex-Net Base Parallel Jaw**
 - 18 million parameters
-- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080Ti
+- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080 Ti
 - 1 hour of training on a single V100
 - Trained with a batch size of 256
 - Trained with SGD and 0.9 momentum
