@@ -165,11 +165,11 @@ Note that at larger batch sizes, FC-GQ-CNN may experience a significant slowdown
 
 ## 🧪 Limitations
 
-This repository does not implement the mesh rendering, analytic grasp generation, or dataset generation discussed in the Dex-Net series. It also does not make modifications to the orginal datasets.
+This repository focuses on training GQ-CNN models on the original Dex-Net 2.0 and Dex-Net 3.0 datasets. It does not implement the mesh rendering, analytic grasp generation, or dataset generation discussed in the Dex-Net series.
 
 We avoid direct comparison with older Dex-Net versions on training, inference, and dataloading speeds because they are impacted by hardware differences. Therefore, these comparisons can't be fully attributed to improved code.
 
-All images in the Dex-Net 2.0 and Dex-Net 3.0 datasets are singulated objects on a flat surface. This has been shown to generalize to multi-object scenarios **PUT A LINK HERE**, but there may be scenarios where these models are not as effective.
+All images in the Dex-Net 2.0 and Dex-Net 3.0 datasets are singulated objects on a flat surface. Please refer to [Dex-Net 2.1](https://berkeleyautomation.github.io/dex-net/#dexnet_21) and [Dex-Net 4.0](https://berkeleyautomation.github.io/dex-net/#dexnet_4) for multi-object bin picking work.
 
 This repository is a standalone code release and is not part of a published paper.
 
