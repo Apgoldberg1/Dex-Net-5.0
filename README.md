@@ -111,7 +111,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 #### Dex-Net Base Suction
 - 18 million parameters
-- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080Ti
+- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080 Ti
 - 6 hours of training on a single 2080 Ti
 - Trained with a batch size of 256
 - Trained with SGD and 0.9 momentum
@@ -119,7 +119,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 
 #### EfficientNet GQ-CNN
 - 5.3 million parameters
-- 2000 (batch size 512) inferences per second on a single 2080Ti
+- 2000 (batch size 512) inferences per second on a single 2080 Ti
 - 30 hours of training on a single 2080 Ti
 - Trained with a batch size of 64
 - Trained with Adam optimizer
@@ -137,7 +137,7 @@ Note that while EfficientNet is a smaller model, it scales input images to (B, 3
 
 **Dex-Net Base Parallel Jaw**
 - 18 million parameters
-- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080Ti
+- 10240 (batch size 512), 24100 (batch size 8192) inferences per second on a single 2080 Ti
 - 1 hour of training on a single V100
 - Trained with a batch size of 256
 - Trained with SGD and 0.9 momentum
@@ -162,6 +162,16 @@ Note that at larger batch sizes, FC-GQ-CNN may experience a significant slowdown
 ![training with and without angle and z distance comparison](README_images/AngleNoAnglePlot.png)
 
 *Models trained on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs show no clear change from our baseline (dex3_newaug) which receives both as input.*
+
+## 🧪 Limitations
+
+This repository focuses on training GQ-CNN models on the original Dex-Net 2.0 and Dex-Net 3.0 datasets. It does not implement the mesh rendering, analytic grasp generation, or dataset generation discussed in the Dex-Net series.
+
+We avoid direct comparison with older Dex-Net versions on training, inference, and dataloading speeds because they are impacted by hardware differences. Therefore, these comparisons can't be fully attributed to improved code.
+
+All images in the Dex-Net 2.0 and Dex-Net 3.0 datasets are singulated objects on a flat surface. Please refer to [Dex-Net 2.1](https://berkeleyautomation.github.io/dex-net/#dexnet_21) and [Dex-Net 4.0](https://berkeleyautomation.github.io/dex-net/#dexnet_4) for multi-object bin picking work.
+
+This repository is a standalone code release and is not part of a published paper.
 
 ## 📝 Citation
 Please cite this repo when using its code.
