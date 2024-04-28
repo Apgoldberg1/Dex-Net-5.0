@@ -220,16 +220,16 @@ if __name__ == "__main__":
 
     # getModelSummary()
 
-    dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
-    from dexnet.torch_dataset import Dex3Dataset as Dataset
-    gt_thresh = .2
+    # dataset_path = Path("dataset/dexnet_3/dexnet_09_13_17")
+    # from dexnet.torch_dataset import Dex3Dataset as Dataset
+    # gt_thresh = .2
 
     """
     Uncomment for Dex2Dataset and parallel jaw analysis
     """
-    # from dexnet.torch_dataset import dex2dataset as dataset
-    # dataset_path = path("dataset/dexnet_2/dexnet_2_tensor")
-    # gt_thresh = .2
+    from dexnet.torch_dataset import Dex2Dataset as Dataset
+    dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")
+    gt_thresh = .2
 
     # print("Getting data statistics")
     # dataStatsMain(dataset_path, .2)

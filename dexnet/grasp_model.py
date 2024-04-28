@@ -194,7 +194,7 @@ class fakeFCGQCNN(nn.Module):
     def forward(self, x):
         heatmap = torch.zeros_like(x)
 
-        for i in range(x.shape[2] - 31):
+        for i in range(0, x.shape[2] - 31):
             for j in range(x.shape[3] - 31):
                 depth = x[:, :, i:i + 32, j:j + 32]
                 heatmap[:, :, i + 16, j + 16] = self.gqcnn(depth).reshape(x.shape[0], 1)

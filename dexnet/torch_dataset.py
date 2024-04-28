@@ -55,6 +55,7 @@ class Dex3Dataset(Dataset):
         self.depth_im_data = self._get_data(self.KEYS["imgs"])
         self.grasp_metric_data = self._get_data(self.KEYS["grasp_metric"]).float()
         self.grasp_metric_data *= self.metric_multiplier
+        self.poses = self._get_data(self.KEYS["pose"])[:, 3]
 
         self.pos_idx = self.grasp_metric_data >= self.threshold     #TODO make this based on the parameter in the config
         print(f"Loaded data in {(time.time() - start):.2f} seconds.")
@@ -153,7 +154,9 @@ class Dex3Dataset(Dataset):
         """
         depth_im = self.depth_im_data[idx]
         grasp_metric = self.grasp_metric_data[idx]
+        pose = self.poses[idx]
 
+        depth_im -= pose
         depth_im = self.preprocess(depth_im)
 
         return depth_im, grasp_metric

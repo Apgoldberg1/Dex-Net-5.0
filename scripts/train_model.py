@@ -44,6 +44,7 @@ def train(config):
             outs = model(depth_ims)
 
             loss = criterion(outs.squeeze(), (wrench_resistances > gt_thresh).float().squeeze())
+            # loss = criterion(outs.squeeze(), wrench_resistances.float().squeeze())
 
             optimizer.zero_grad()
             loss.backward()
@@ -121,6 +122,7 @@ def eval(model, val_loader, criterion, gt_thresh, device):
 
             outputs = model(depth_ims).squeeze()
             loss = criterion(outputs, (wrench_resistances > gt_thresh).float().squeeze())
+            # loss = criterion(outputs, wrench_resistances.float().squeeze())
 
             tot_loss += loss.item() * len(wrench_resistances)
             tot_preds += len(wrench_resistances)
@@ -268,6 +270,8 @@ if __name__ == "__main__":
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 
     criterion = nn.BCELoss()
+    # criterion = nn.MSELoss()
+    # criterion = nn.CrossEntropyLoss()
 
     model.to(device)
 
