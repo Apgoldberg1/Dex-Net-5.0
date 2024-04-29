@@ -129,8 +129,8 @@ class Dex3Dataset(Dataset):
                 gp_noise = torch.randn(8, 8) * 0.005
                 gp_noise = F.interpolate(
                     gp_noise.unsqueeze(0).unsqueeze(0), scale_factor=4.0, mode="bicubic"
-                ).squeeze()
-                assert gp_noise.shape[-1] == img.shape[-1], "Noise shape mismatch."
+                ).squeeze().unsqueeze(0)
+                assert gp_noise.shape == img.shape, "Noise shape mismatch."
 
                 # Add the noise to the image where pixel values are greater than 0
                 img[img > 0] += gp_noise[img > 0].float()

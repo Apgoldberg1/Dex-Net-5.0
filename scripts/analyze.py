@@ -27,13 +27,14 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, gt_thresh, threshol
 
     with torch.no_grad():
         for i, batch in enumerate(val_loader):
-            depth_ims, wrench_resistances = batch
-            depth_ims, wrench_resistances = (
+            depth_ims, wrench_resistances, poses = batch
+            depth_ims, wrench_resistances, poses = (
                 depth_ims.to(device),
                 wrench_resistances.to(device),
+                poses.to(device)
             )
 
-            outputs = model(depth_ims).reshape(len(wrench_resistances), 1)
+            outputs = model(depth_ims, poses).reshape(len(wrench_resistances), 1)
             wrench_resistances = wrench_resistances.reshape(len(wrench_resistances), 1)
             assert outputs.shape == wrench_resistances.shape, "shape mismatch between gt and model outputs"
 
@@ -134,7 +135,7 @@ def precisionMain(model_path, dataset_path, gt_thresh, ordered_split=False):
 
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
-    batch_size = 64
+    batch_size = 4096
 
     if ordered_split:
         val_sampler = SubsetRandomSampler(torch.arange(0, val_size))
@@ -215,6 +216,8 @@ if __name__ == "__main__":
         from dexnet.grasp_model import DexNetBase as Model
     elif model_name.lower() == "efficientnet":
         from dexnet.grasp_model import EfficientNet as Model
+    elif model_name.lower() == "dexnet2":
+        from dexnet.grasp_model import DexNet2 as Model
     else:
         raise AssertionError(f"{model_name} as model_name arg is not supported")
 
