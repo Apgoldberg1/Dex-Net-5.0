@@ -34,14 +34,15 @@ def train(config):
         min_valid_loss = 99999.9
         model.train()
         for i, batch in enumerate(train_loader):
-            depth_ims, wrench_resistances = batch
-            depth_ims, wrench_resistances = (
+            depth_ims, wrench_resistances, poses = batch
+            depth_ims, wrench_resistances, poses = (
                 depth_ims.to(device),
                 wrench_resistances.to(device),
+                poses.to(device)
             )
             wrench_resistances = torch.clip(wrench_resistances, 0, 1)
 
-            outs = model(depth_ims)
+            outs = model(depth_ims, poses)
 
             loss = criterion(outs.squeeze(), (wrench_resistances > gt_thresh).float().squeeze())
             # loss = criterion(outs.squeeze(), wrench_resistances.float().squeeze())
@@ -89,9 +90,10 @@ def train(config):
                         model.state_dict(), f"{save_directory}/best_valid_{save_name}.pth"
                     )
                     min_valid_loss = loss
+            if ((i + epoch * train_size // batch_size) % decay_steps == decay_steps - 1):
+                scheduler.step()
 
         print("epoch", epoch, "complete")
-        scheduler.step()
 
         save_every_x = config["outputs"]["save_every_x_epoch"]
         if epoch % save_every_x == save_every_x - 1:
@@ -114,13 +116,14 @@ def eval(model, val_loader, criterion, gt_thresh, device):
 
     with torch.no_grad():
         for i, batch in enumerate(val_loader):
-            depth_ims, wrench_resistances = batch
-            depth_ims, wrench_resistances = (
+            depth_ims, wrench_resistances, poses = batch
+            depth_ims, wrench_resistances, poses = (
                 depth_ims.to(device),
                 wrench_resistances.to(device),
+                poses.to(device)
             )
 
-            outputs = model(depth_ims).squeeze()
+            outputs = model(depth_ims, poses).squeeze()
             loss = criterion(outputs, (wrench_resistances > gt_thresh).float().squeeze())
             # loss = criterion(outputs, wrench_resistances.float().squeeze())
 
@@ -191,6 +194,8 @@ if __name__ == "__main__":
         from dexnet.grasp_model import DexNetBase as Model
     elif config["model"].lower() == "efficientnet":
         from dexnet.grasp_model import EfficientNet as Model
+    elif config["model"].lower() == "dexnet2":
+        from dexnet.grasp_model import DexNet2 as Model
     else:
         raise AssertionError(
             f"{config['model']} is not a model option, try dexnet3 or resnet18 instead"
@@ -198,7 +203,7 @@ if __name__ == "__main__":
 
     dataset_path = config["training"]["dataset_path"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    torch.manual_seed(0)
+    torch.manual_seed(1)
     batch_size = config["training"]["batch_size"]
 
     dataset = Dataset(
@@ -266,6 +271,9 @@ if __name__ == "__main__":
         optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     else:
         raise AssertionError("only [adam, sgd] supported as optimizers")
+
+    decay_step_multiplier = config["optimizer"]["decay_step_multiplier"]
+    decay_steps = (decay_step_multiplier * train_size) // batch_size
 
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 

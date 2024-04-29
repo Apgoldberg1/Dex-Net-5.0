@@ -55,7 +55,7 @@ class Dex3Dataset(Dataset):
         self.depth_im_data = self._get_data(self.KEYS["imgs"])
         self.grasp_metric_data = self._get_data(self.KEYS["grasp_metric"]).float()
         self.grasp_metric_data *= self.metric_multiplier
-        self.poses = self._get_data(self.KEYS["pose"])[:, 3]
+        self.poses = self._get_data(self.KEYS["pose"])[:, 3].squeeze()
 
         self.pos_idx = self.grasp_metric_data >= self.threshold     #TODO make this based on the parameter in the config
         print(f"Loaded data in {(time.time() - start):.2f} seconds.")
@@ -116,20 +116,24 @@ class Dex3Dataset(Dataset):
 
         img = img.permute(2, 0, 1).float()  # (H, W, C) -> (C, H, W)
 
-        # Normalize image data.
-        img = (img - self.normalizers[0]) / self.normalizers[1]
-
         if self.transform:
-            # Create noise -- with same shape as image.
-            gp_noise = torch.randn(8, 8) * 0.005
-            gp_noise = F.interpolate(
-                gp_noise.unsqueeze(0).unsqueeze(0), scale_factor=4.0, mode="bicubic"
-            ).squeeze()
-            assert gp_noise.shape[-1] == img.shape[-1], "Noise shape mismatch."
+            # multipicative denoising
+            gamma_dist = torch.distributions.Gamma(1000, 1000)
+            sample = gamma_dist.sample()
+            multipliers = torch.tile(sample, (1, 32, 32))
+            img = img * multipliers
 
-            # Add the noise to the image where pixel values are greater than 0
-            mask = (img > 0).float()
-            img = img + gp_noise * mask
+
+            if np.random.rand() < 0.5:
+                # Create noise -- with same shape as image.
+                gp_noise = torch.randn(8, 8) * 0.005
+                gp_noise = F.interpolate(
+                    gp_noise.unsqueeze(0).unsqueeze(0), scale_factor=4.0, mode="bicubic"
+                ).squeeze()
+                assert gp_noise.shape[-1] == img.shape[-1], "Noise shape mismatch."
+
+                # Add the noise to the image where pixel values are greater than 0
+                img[img > 0] += gp_noise[img > 0].float()
 
             # Image augmentation.
             if np.random.rand() < 0.5:
@@ -138,6 +142,9 @@ class Dex3Dataset(Dataset):
                 img = transforms.functional.vflip(img)
             if np.random.rand() < 0.5:
                 img = transforms.functional.hflip(img)
+
+        # Normalize image data
+        img = (img - self.normalizers[0]) / self.normalizers[1]
 
         return img
 
@@ -154,12 +161,11 @@ class Dex3Dataset(Dataset):
         """
         depth_im = self.depth_im_data[idx]
         grasp_metric = self.grasp_metric_data[idx]
-        pose = self.poses[idx]
+        pose = ((self.poses[idx] - self.normalizers[2]) / self.normalizers[3]).float().reshape(1)
 
-        depth_im -= pose
         depth_im = self.preprocess(depth_im)
 
-        return depth_im, grasp_metric
+        return depth_im, grasp_metric, pose
 
 
 
@@ -173,7 +179,9 @@ class Dex2Dataset(Dex3Dataset):
     }
     normalizers = (
         0.7000409878366362,
-        0.004000758979378677
+        0.004000758979378677,
+        3.0742,
+        1.9395
     )  # mean, std value for depth images (from analyze.py script)
     threshold = .2
     # The dataset actually thresholds at .002, so we multiply by 100 for consistency between the datasets
