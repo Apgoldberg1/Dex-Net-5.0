@@ -1,5 +1,5 @@
 # EfficientNet GQ-CNN suction training config
-name: "DexNet3"
+name: "EfficientNet Suction"
 model: "EfficientNet"
 dataset: "dexnet3"
 optimizer:
@@ -7,6 +7,7 @@ optimizer:
   learning_rate: 0.001
   momentum: .9
   scheduler_gamma: .95
+  decay_step_multiplier: .66  
   weight_decay: 0
 training:
   dataset_path: "dataset/dexnet_3/dexnet_09_13_17"
@@ -19,7 +20,7 @@ training:
   pos_weight: 1 # make 1 for no oversampling
 outputs:
   save_directory: "outputs/suction_modles"
-  save_name: "suction_efficientnet"
+  save_name: "final_suction_efficientnet"
   training_print_every: 500
   val_print_every: 2000
   save_every_x_epoch: 5

@@ -1,17 +1,17 @@
-# parallel jaw config
-name: "DexNet2"
-model: "DexNetNoZ"
+# EfficientNet GQ-CNN parallel jaw training config
+name: "EfficientNet pj"
+model: "EfficientNet"
 dataset: "dexnet2"
 optimizer:
-  name: "sgd"
-  learning_rate: 0.01
+  name: "adam"
+  learning_rate: 0.001
   momentum: .9
   scheduler_gamma: .95
   decay_step_multiplier: .66  
-  weight_decay: 0.0005
+  weight_decay: 0
 training:
   dataset_path: "dataset/dexnet_2/dexnet_2_tensor"
-  batch_size: 256
+  batch_size: 64
   num_epochs: 25
   resize: false
   GT_threshold: 0.2
@@ -20,10 +20,10 @@ training:
   pos_weight: 1 # make 1 for no oversampling
 outputs:
   save_directory: "outputs/parallel_jaw_models"
-  save_name: "pj_new_normal_og_arch_no_z"
+  save_name: "final_pj_efficientnet"
   training_print_every: 500
   val_print_every: 2000
-  save_every_x_epoch: 10
+  save_every_x_epoch: 5
 
   
 

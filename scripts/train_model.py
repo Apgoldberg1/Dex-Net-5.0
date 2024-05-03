@@ -42,10 +42,10 @@ def train(config):
             )
             wrench_resistances = torch.clip(wrench_resistances, 0, 1)
 
-            outs = model(depth_ims, poses)
+            # outs = model(depth_ims, poses)
+            outs = model(depth_ims)
 
             loss = criterion(outs.squeeze(), (wrench_resistances > gt_thresh).float().squeeze())
-            # loss = criterion(outs.squeeze(), wrench_resistances.float().squeeze())
 
             optimizer.zero_grad()
             loss.backward()
@@ -123,9 +123,9 @@ def eval(model, val_loader, criterion, gt_thresh, device):
                 poses.to(device)
             )
 
-            outputs = model(depth_ims, poses).squeeze()
+            # outputs = model(depth_ims, poses).squeeze()
+            outputs = model(depth_ims).squeeze()
             loss = criterion(outputs, (wrench_resistances > gt_thresh).float().squeeze())
-            # loss = criterion(outputs, wrench_resistances.float().squeeze())
 
             tot_loss += loss.item() * len(wrench_resistances)
             tot_preds += len(wrench_resistances)
@@ -141,7 +141,7 @@ def eval(model, val_loader, criterion, gt_thresh, device):
             )
             assert correct <= tot_preds, f"correct: {correct}, tot_preds: {tot_preds}"
 
-            tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=gt_thresh)
+            tp, fp, fn = getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=.5)
             tot_tp, tot_fp, tot_fn = tot_tp + tp, tot_fp + fp, tot_fn + fn
 
     if tot_tp == 0:
@@ -154,7 +154,7 @@ def eval(model, val_loader, criterion, gt_thresh, device):
     return tot_loss / tot_preds, correct / tot_preds, precision, recall
 
 
-def getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=0.2):
+def getPrecisionRecall(outputs, wrench_resistances, gt_thresh, thresh=0.5):
     tp = ((outputs > thresh) & (wrench_resistances > gt_thresh)).sum().item()
     fp = ((outputs > thresh) & (wrench_resistances <= gt_thresh)).sum().item()
     fn = ((outputs <= thresh) & (wrench_resistances > gt_thresh)).sum().item()
@@ -196,6 +196,8 @@ if __name__ == "__main__":
         from dexnet.grasp_model import EfficientNet as Model
     elif config["model"].lower() == "dexnet2":
         from dexnet.grasp_model import DexNet2 as Model
+    elif config["model"].lower() == "dexnetnoz":
+        from dexnet.grasp_model import DexNetNoZ as Model
     else:
         raise AssertionError(
             f"{config['model']} is not a model option, try dexnet3 or resnet18 instead"
@@ -203,6 +205,9 @@ if __name__ == "__main__":
 
     dataset_path = config["training"]["dataset_path"]
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device != "cuda":
+        print("WARNING cuda not found, training on cpu")
+
     torch.manual_seed(1)
     batch_size = config["training"]["batch_size"]
 
@@ -278,8 +283,6 @@ if __name__ == "__main__":
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 
     criterion = nn.BCELoss()
-    # criterion = nn.MSELoss()
-    # criterion = nn.CrossEntropyLoss()
 
     model.to(device)
 

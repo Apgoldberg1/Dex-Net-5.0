@@ -34,7 +34,8 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, gt_thresh, threshol
                 poses.to(device)
             )
 
-            outputs = model(depth_ims, poses).reshape(len(wrench_resistances), 1)
+            # outputs = model(depth_ims, poses).reshape(len(wrench_resistances), 1)
+            outputs = model(depth_ims).reshape(len(wrench_resistances), 1)
             wrench_resistances = wrench_resistances.reshape(len(wrench_resistances), 1)
             assert outputs.shape == wrench_resistances.shape, "shape mismatch between gt and model outputs"
 
@@ -71,34 +72,6 @@ def getAllThreshedPrecisionRecall(model, val_loader, device, gt_thresh, threshol
                 precision[i], recall[i] = tp / (tp + fp), tp / (tp + fn)
 
     return tot_correct / tot_preds, precision, recall
-
-
-def getDatasetMeanStd(loader, device, metric_thresh):
-    tot_preds = 0
-    running_im_mean, running_im_std, running_correct = 0, 0, 0
-
-    with torch.no_grad():
-        for i, batch in enumerate(loader):
-            depth_ims, wrench_resistances = batch
-            depth_ims, wrench_resistances = (
-                depth_ims.to(device),
-                wrench_resistances.to(device),
-            )
-
-            tot_preds += len(wrench_resistances)
-
-            running_im_mean += depth_ims.sum() / (32 * 32)
-            running_im_std += depth_ims.std(dim=0).sum()
-            running_correct += (wrench_resistances > metric_thresh).sum()
-
-            if tot_preds > 1_000_000:
-                break
-
-    return (
-        running_im_mean.item() / tot_preds,
-        running_im_std.item() / tot_preds,
-        running_correct.item() / tot_preds
-    )
 
 
 def plotPrecisionRecall(precisions, recalls):
@@ -168,16 +141,32 @@ def precisionMain(model_path, dataset_path, gt_thresh, ordered_split=False):
 
 
 def dataStatsMain(dataset_path, metric_thresh):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    batch_size = 8192
-
     dataset = Dataset(dataset_path)
 
-    loader = DataLoader(
-        dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=8
-    )
+    pos_percentage = (dataset.grasp_metric_data > metric_thresh).sum() / dataset.grasp_metric_data.size(0)
+    print("positive grasp percentage:", pos_percentage)
 
-    print(getDatasetMeanStd(loader, device, metric_thresh))
+    double_depth_im = dataset.depth_im_data.double()
+    img_mean = double_depth_im.mean()
+    img_std = double_depth_im.std()
+    print(f"depth mean {img_mean}, depth std {img_std}")
+
+    # for parallel jaw we only have a z-pose
+    if len(dataset.poses.shape) == 1:
+        pose_mean = dataset.poses.mean()
+        pose_std = dataset.poses.std()
+        print(f"z-pose mean {pose_mean}, z-pose std {pose_std}")
+    # for suction we have z-pose and angle
+    elif dataset.poses.shape[1] == 2:
+        pose_mean = dataset.poses[:, 0].mean()
+        pose_std = dataset.poses[:, 0].std()
+        print(f"z-pose mean {pose_mean}, z-pose std {pose_std}")
+        pose_mean = dataset.poses[:, 1].double().mean()
+        pose_std = dataset.poses[:, 1].double().std()
+        print(f"angle-pos mean {pose_mean}, angle-pose std {pose_std}")
+    else:
+        raise AssertionError("dataset.poses shape is {dataset.poses.shape}, expected (x,) or (x,2)")
+
 
 
 def getModelSummary():
@@ -218,6 +207,8 @@ if __name__ == "__main__":
         from dexnet.grasp_model import EfficientNet as Model
     elif model_name.lower() == "dexnet2":
         from dexnet.grasp_model import DexNet2 as Model
+    elif model_name.lower() == "dexnetnoz":
+        from dexnet.grasp_model import DexNetNoZ as Model
     else:
         raise AssertionError(f"{model_name} as model_name arg is not supported")
 
@@ -228,7 +219,7 @@ if __name__ == "__main__":
     # gt_thresh = .2
 
     """
-    Uncomment for Dex2Dataset and parallel jaw analysis
+    Uncomment for Dex2Dataset, parallel jaw analysis
     """
     from dexnet.torch_dataset import Dex2Dataset as Dataset
     dataset_path = Path("dataset/dexnet_2/dexnet_2_tensor")

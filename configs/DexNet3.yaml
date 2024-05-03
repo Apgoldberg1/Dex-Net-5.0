@@ -1,12 +1,13 @@
 # Suction training config
 name: "DexNet3"
-model: "DexNetBase"
+model: "DexNetNoZ"
 dataset: "dexnet3"
 optimizer:
   name: "sgd"
   learning_rate: 0.005
   momentum: .9
   scheduler_gamma: .95
+  decay_step_multiplier: .66  
   weight_decay: 0.0005
 training:
   dataset_path: "dataset/dexnet_3/dexnet_09_13_17"
@@ -19,7 +20,7 @@ training:
   pos_weight: 1 # make 1 for no oversampling
 outputs:
   save_directory: "outputs/suction_models"
-  save_name: "suction_DexNetBase"
+  save_name: "suction_final_no_z"
   training_print_every: 500
   val_print_every: 2000
   save_every_x_epoch: 10

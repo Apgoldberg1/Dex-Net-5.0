@@ -26,11 +26,16 @@ class Dex3Dataset(Dataset):
         "pose": "hand_poses",
         "grasp_metric": "robust_suction_wrench_resistance",
     }
+    POSE_IDX = [3, 4]
 
     normalizers = (
-        0.59784445,
-        0.00770147890625,
-    )  # mean, std value for depth images (from analyze.py script)
+        0.59247871,
+        0.06873399,
+        0.35668945,
+        0.23767089,
+        0.00296211,
+        1.46679687
+    )  # mean, std value for depth images, z-pose, angle-pose (from analyze.py script)
     threshold = 0.2
     metric_multiplier = 1
 
@@ -55,7 +60,7 @@ class Dex3Dataset(Dataset):
         self.depth_im_data = self._get_data(self.KEYS["imgs"])
         self.grasp_metric_data = self._get_data(self.KEYS["grasp_metric"]).float()
         self.grasp_metric_data *= self.metric_multiplier
-        self.poses = self._get_data(self.KEYS["pose"])[:, 3].squeeze()
+        self.poses = self._get_data(self.KEYS["pose"])[:, self.POSE_IDX].squeeze()
 
         self.pos_idx = self.grasp_metric_data >= self.threshold     #TODO make this based on the parameter in the config
         print(f"Loaded data in {(time.time() - start):.2f} seconds.")
@@ -107,8 +112,8 @@ class Dex3Dataset(Dataset):
         return data
 
     def preprocess(
-        self, img: torch.Tensor
-    ) -> torch.Tensor:
+        self, img: torch.Tensor, pose: torch.Tensor
+    ):
         """
         Preprocesses the image for training.
         """
@@ -134,19 +139,25 @@ class Dex3Dataset(Dataset):
 
                 # Add the noise to the image where pixel values are greater than 0
                 img[img > 0] += gp_noise[img > 0].float()
-
+            
+            flip = 1
             # Image augmentation.
             if np.random.rand() < 0.5:
                 img = transforms.functional.rotate(img, 180)
+                flip *= -1
             if np.random.rand() < 0.5:
                 img = transforms.functional.vflip(img)
+                flip *= -1
             if np.random.rand() < 0.5:
                 img = transforms.functional.hflip(img)
+            
+            if len(pose) == 2:
+                pose[1] *= flip
 
         # Normalize image data
         img = (img - self.normalizers[0]) / self.normalizers[1]
 
-        return img
+        return img, pose
 
     def __len__(self):
         """
@@ -161,10 +172,18 @@ class Dex3Dataset(Dataset):
         """
         depth_im = self.depth_im_data[idx]
         grasp_metric = self.grasp_metric_data[idx]
-        pose = ((self.poses[idx] - self.normalizers[2]) / self.normalizers[3]).float().reshape(1)
 
-        depth_im = self.preprocess(depth_im)
+        if len(self.POSE_IDX) == 1:
+            pose = ((self.poses[idx] - self.normalizers[2]) / self.normalizers[3]).float().reshape(1)
+        else:
+            pose_z = ((self.poses[idx, 0] - self.normalizers[2]) / self.normalizers[3]).float().reshape(1)
+            pose_angle = (self.poses[idx, 1] - self.normalizers[4] / self.normalizers[5]).float().reshape(1)
+            pose = torch.tensor([pose_z, pose_angle])
+        
 
+        depth_im, pose = self.preprocess(depth_im, pose)
+
+        # return depth_im, grasp_metric, pose
         return depth_im, grasp_metric, pose
 
 
@@ -179,13 +198,16 @@ class Dex2Dataset(Dex3Dataset):
     }
     normalizers = (
         0.7000409878366362,
-        0.004000758979378677,
+        .0325622,
         3.0742,
         1.9395
-    )  # mean, std value for depth images (from analyze.py script)
+    )  # mean, std value for depth images, z pose (from analyze.py script)
     threshold = .2
     # The dataset actually thresholds at .002, so we multiply by 100 for consistency between the datasets
     metric_multiplier = 100
+
+    # we only need z for parallel jaw since the anlge is encoded in the image rotation
+    POSE_IDX = [3]
 
 def testLoader():
     """
