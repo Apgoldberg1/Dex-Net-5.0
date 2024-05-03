@@ -4,8 +4,8 @@ Run inference with FCGQCNN
 import torch
 import numpy as np
 import math
-from dexnet.grasp_model import fakeSuctionFCGQCNN
-from dexnet.grasp_model import HighRes as FCGQCNN
+from dexnet.grasp_model import fakeFCGQCNN
+from dexnet.grasp_model import HighResFCGQCNN as FCGQCNN
 from dexnet.grasp_model import DexNetBase as GQCNN
 import matplotlib.pyplot as plt
 import cv2
@@ -47,9 +47,9 @@ def main(fcgqcnn_weights_path, img, device):
 
     x_show = img
     x = processNumpy(img)
-    x = torch.unsqueeze(0)
+    x = x.unsqueeze(0)
 
-    assert len(x.shape) == 4, f"shape should be (batch, 1, x, y), but shape is {x.shape}"
+    assert len(x.shape) == 4 and x.shape[1] == 1, f"shape should be (batch, 1, x, y), but shape is {x.shape}"
     x = x.to(device)
 
     fcgqcnn.eval()
@@ -69,11 +69,11 @@ def main(fcgqcnn_weights_path, img, device):
     axes[0].imshow(output.numpy().squeeze(), cmap="gray")
     axes[0].axis('off')
 
-    axes[1].imshow(x_show.squeeze(), cmap="gray")
+    axes[1].imshow(x_show, cmap="gray")
     axes[1].axis('off')
 
     plt.tight_layout()
-    plt.savefig("outputs/out.png")
+    plt.savefig("outputs/fcgqcnn_out.png")
     plt.show()
 
 if __name__ == "__main__":
@@ -98,8 +98,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     fcgqcnn_weights_path = args.model_path
+
     img = cv2.imread(args.img_path)
-    img = np.mean(img, axis=-1).unsqueeze(-1)
+    img = np.mean(img, axis=-1).reshape(-1, 1)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":

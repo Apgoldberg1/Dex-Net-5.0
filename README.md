@@ -1,5 +1,5 @@
 # Dex-Net 5.0 - A PyTorch implementation to train on the Dex-Net Datasets
-Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides improved performance and ease of use over the original codebase. Dex-Net grasp quality models take normalized single channel depth images as input and output grasp confidences. This repo implements a model similar to the original GQ-CNN (Grasp Quality Convolutional Neural Network) architecture along with a new EfficientNet-based GQ-CNN architecture. It also provides an FC-GQ-CNN (Fully Convolutional Grasp Quality Neural Network) architecture for grasp quality heatmap generation and training + analysis code for the models.
+Dex-Net 5.0 is a PyTorch implementation to train on the original Dex-Net 2.0 parallel jaw grasp and Dex-Net 3.0 suction grasp datasets. It provides improved performance and ease of use over the original codebase. Dex-Net grasp quality models take normalized single channel depth images as input and output grasp confidences. This repo implements a model similar to the original GQ-CNN (Grasp Quality Convolutional Neural Network) architecture along with a new EfficientNet-based GQ-CNN architecture. The EfficientNet-based suction GQ-CNN achieves a 95.4% accuracy on a validation set, a 1.9% increase over Dex-Net 3.0's reported accuracy. This repo also provides an FC-GQ-CNN (Fully Convolutional Grasp Quality Neural Network) architecture for grasp quality heatmap generation and training + analysis code for the models.
 
 This project is created and maintained by [AUTOLab at UC Berkeley](https://autolab.berkeley.edu/)
 
@@ -74,6 +74,14 @@ Script to benchmark the inference speed of models on random image-shaped data.
 
 Script to visualize Dex-Net 2.0 or Dex-Net 3.0 dataset. Saves 10 plots, each with 25 random images and their labels to "outputs" folder. Adjust dataset path as necessary.
 
+### fcgqcnn.py
+
+Script to run inference on a grey scale depth image. The output image is saved to `outputs/fcgqcnn_out.png`
+
+```
+python3 scripts/fcgqcnn.py --model_path PATH_TO_MODEL --img PATH_TO_IMG
+```
+
 ### Configs
 
 The configs include YAML files specifying model name, save name, dataset path, optimizer, Wandb logging, batch size, and more. The dataset path should be to the directory containing the "tensors" folder for either the Dex-Net 2.0 or Dex-Net 3.0 dataset.
@@ -115,6 +123,7 @@ The configs include YAML files specifying model name, save name, dataset path, o
 - 30 hours of training on a single 2080 Ti
 - Trained with a batch size of 64
 - Trained with Adam optimizer
+- Achieves 95.4% accuracy on validation set
 
 Note that while EfficientNet is a smaller model, it scales input images to (B, 3, 224, 224) which prevents larger batch sizes.
 
@@ -153,6 +162,17 @@ Note that at larger batch sizes, FC-GQ-CNN may experience a significant slowdown
 ![training with and without angle and z distance comparison](README_images/AngleNoAnglePlot.png)
 
 *Models trained on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs show no clear change from our baseline (dex3_newaug) which receives both as input.*
+
+
+## 🧪 Limitations
+
+This repository focuses on training GQ-CNN models on the original Dex-Net 2.0 and Dex-Net 3.0 datasets. It does not implement the mesh rendering, analytic grasp generation, or dataset generation discussed in the Dex-Net series.
+
+We avoid direct comparison with older Dex-Net versions on training, inference, and dataloading speeds because they are impacted by hardware differences. Therefore, these comparisons can't be fully attributed to improved code.
+
+All images in the Dex-Net 2.0 and Dex-Net 3.0 datasets are singulated objects on a flat surface. Please refer to [Dex-Net 2.1](https://berkeleyautomation.github.io/dex-net/#dexnet_21) and [Dex-Net 4.0](https://berkeleyautomation.github.io/dex-net/#dexnet_4) for multi-object bin picking work.
+
+This repository is a standalone code release and is not part of a published paper.
 
 ## 📝 Citation
 Please cite this repo when using its code.

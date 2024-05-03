@@ -1,5 +1,5 @@
 """
-Dataset for DexNet3.0 dataset.
+PyTorch Dataset for Dex-Net 2.0 and Dex-Net 3.0 datasets.
 """
 
 import time
@@ -93,7 +93,7 @@ class Dex3Dataset(Dataset):
 
         def loader(idx):
             with np.load(key_to_npz(key, idx)) as x:
-                arr = x["arr_0"]
+                arr = x["arr_0"].astype(np.float16)
             return arr
 
         with ThreadPoolExecutor(max_workers=8) as executor:
