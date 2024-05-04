@@ -163,6 +163,10 @@ Note that at larger batch sizes, FC-GQ-CNN may experience a significant slowdown
 
 *Models trained on the Dex-Net 3.0 dataset with or without the gripper approach angle and gripper z distance as inputs show no clear change from our baseline (dex3_newaug) which receives both as input.*
 
+![training with and without z distance on parallel jaw data](README_images/parallel_jaw_z_comparison.jpg)
+
+*Models trained on the Dex-Net 2.0 dataset with and without gripper z distance as an input also perform similarily*
+
 
 ## 🧪 Limitations
 
