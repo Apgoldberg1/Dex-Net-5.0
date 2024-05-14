@@ -38,7 +38,11 @@ def process_img(x):
     x = torch.tensor(x, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to("cuda")
     return x
 
-parent_directory = '/home/ryanhoque/scene_data/3dnet'
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--dir', required=True, help='path to input directory')
+args = parser.parse_args()
+parent_directory = args.dir
 directories = list_directories(parent_directory)
 
 j = 0
