@@ -1,0 +1,25 @@
+# Suction training config
+name: "DexNet3FC"
+model: "fcgqcnn"
+dataset: "dexnet3fc"
+optimizer:
+  name: "sgd"
+  learning_rate: 0.005
+  momentum: .9
+  scheduler_gamma: .95
+  weight_decay: 0.0005
+training:
+  dataset_path: "dataset/dexnet3fc"
+  batch_size: 10
+  num_epochs: 100
+  resize: false
+  wandb: true
+outputs:
+  save_directory: "outputs/dexnet3fc"
+  save_name: "suction_fc"
+  training_print_every: 500
+  val_print_every: 5
+  save_every_x_epoch: 10
+
+  
+
