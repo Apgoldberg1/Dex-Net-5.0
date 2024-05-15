@@ -1,6 +1,6 @@
 # Suction training config
 name: "DexNet3FC"
-model: "fcgqcnn"
+model: "unet"
 dataset: "dexnet3fc"
 optimizer:
   name: "sgd"
@@ -16,7 +16,7 @@ training:
   wandb: true
 outputs:
   save_directory: "outputs/dexnet3fc"
-  save_name: "suction_fc"
+  save_name: "unet_suction_fc"
   training_print_every: 500
   val_print_every: 5
   save_every_x_epoch: 10

@@ -41,6 +41,8 @@ def train(config):
 
             outs = model(depth_ims)
 
+            #print(depth_ims.size(), outs.size(), wrench_resistances.size())
+
             loss = criterion(outs.squeeze(), wrench_resistances.squeeze())
 
             optimizer.zero_grad()
@@ -161,6 +163,8 @@ if __name__ == "__main__":
         from dexnet.grasp_model import EfficientNet as Model
     elif config["model"].lower() == "fcgqcnn":
         from dexnet.grasp_model import BaseFCGQCNN as Model
+    elif config["model"].lower() == "unet":
+        from dexnet.grasp_model import UNetFCGQCNN as Model
     else:
         raise AssertionError(
             f"{config['model']} is not a model option, try dexnet3 or resnet18 instead"

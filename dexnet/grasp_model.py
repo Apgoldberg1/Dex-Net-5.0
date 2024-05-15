@@ -115,6 +115,84 @@ class BaseFCGQCNN(nn.Module):
         x = self.sigmoid(x)
         return x
 
+class UNetFCGQCNN(nn.Module):
+    def __init__(self):
+        super(UNetFCGQCNN, self).__init__()
+        # Contracting Path
+        self.conv1 = self.contract_block(1, 64, 3, 1)
+        self.conv2 = self.contract_block(64, 128, 3, 1)
+        self.conv3 = self.contract_block(128, 256, 3, 1)
+        self.conv4 = self.contract_block(256, 512, 3, 1)
+        self.drop4 = nn.Dropout(0.5)
+        self.conv5 = self.contract_block(512, 1024, 3, 1)
+        self.drop5 = nn.Dropout(0.5)
+        
+        # Expansive Path
+        self.up6 = self.expand_block(1024, 512)
+        self.conv6 = self.contract_block_no_pool(1024, 512, 3, 1)
+        self.up7 = self.expand_block(512, 256)
+        self.conv7 = self.contract_block_no_pool(512, 256, 3, 1)
+        self.up8 = self.expand_block(256, 128)
+        self.conv8 = self.contract_block_no_pool(256, 128, 3, 1)
+        self.up9 = self.expand_block(128, 64)
+        self.conv9 = self.contract_block_no_pool(128, 64, 3, 1)
+        
+        self.final = nn.Conv2d(64, 1, kernel_size=1)
+        self.sigmoid = nn.Sigmoid()
+
+    def __call__(self, x):
+        # Contracting Path
+        x1 = self.conv1(x)
+        x2 = self.conv2(x1)
+        x3 = self.conv3(x2)
+        x4 = self.conv4(x3)
+        x4_drop = self.drop4(x4)
+        x5 = self.conv5(x4_drop)
+        x5_drop = self.drop5(x5)
+        
+        # Expansive Path
+        x6 = self.up6(x5_drop)
+        x6 = torch.cat([x6, x4_drop], dim=1)
+        x6 = self.conv6(x6)
+        x7 = self.up7(x6)
+        x7 = torch.cat([x7, x3], dim=1)
+        x7 = self.conv7(x7)
+        x8 = self.up8(x7)
+        x8 = torch.cat([x8, x2], dim=1)
+        x8 = self.conv8(x8)
+        x9 = self.up9(x8)
+        x9 = torch.cat([x9, x1], dim=1)
+        x9 = self.conv9(x9)
+        
+        x10 = self.final(x9)
+        output = self.sigmoid(x10)
+        return output
+
+    def contract_block(self, in_channels, out_channels, kernel_size, padding):
+        contract = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+        return contract
+
+    def contract_block_no_pool(self, in_channels, out_channels, kernel_size, padding):
+        contract = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, kernel_size=kernel_size, padding=padding),
+            nn.ReLU()
+        )
+        return contract
+
+    def expand_block(self, in_channels, out_channels):
+        expand = nn.Sequential(
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2),
+            nn.ReLU()
+        )
+        return expand
 
 class HighResFCGQCNN(BaseFCGQCNN):
     def forward(self, x):

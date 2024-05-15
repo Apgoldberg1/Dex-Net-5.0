@@ -79,7 +79,7 @@ class Dex3FCDataset(Dataset):
                 return img.reshape((img.shape[0], img.shape[1], 1))
             elif key == 'Y':
                 img = np.load(f"{self.dataset_path}/{key}/{str(idx)}.npy")
-                img = cv2.resize(img, (241, 241)) # hardcode resizing for now
+                img = cv2.resize(img, (256, 256)) # hardcode resizing for now.. 241,241 for BaseFC; 256,256 for UNet
                 img = img.reshape((img.shape[0], img.shape[1], 1))
                 return img
 
