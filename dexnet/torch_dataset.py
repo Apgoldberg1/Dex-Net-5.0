@@ -68,7 +68,7 @@ class Dex3FCDataset(Dataset):
 
         def key_to_npz(idx: int) -> str:
             if key == 'X':
-                img = cv2.imread(f"{self.dataset_path}/{key}/{str(idx).zfill(4)}.png").mean(axis=2)
+                img = cv2.imread(f"{self.dataset_path}/{key}/{str(idx)}.png").mean(axis=2)
                 # preprocess blender depth
                 img = 255 - img
                 kernel = np.ones((15,15), np.uint8)

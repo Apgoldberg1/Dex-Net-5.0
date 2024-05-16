@@ -64,7 +64,7 @@ def train(config):
 
                 tot_loss, tot_preds = 0, 0
 
-            if i % val_print_freq == val_print_freq - 1:
+            if i == 0 or i % val_print_freq == val_print_freq - 1:
                 torch.save(model.state_dict(), f"{save_directory}/{save_name}_in_training.pth")
                 loss = eval(
                     model, val_loader, criterion, device
@@ -182,16 +182,20 @@ if __name__ == "__main__":
     train_size = int(0.9 * len(dataset))
     val_size = len(dataset) - train_size
 
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-    val_dataset.dataset = copy(dataset)
-
-    val_dataset.dataset.transform = False
+    train_sampler = SubsetRandomSampler(
+        torch.arange(val_size, val_size + train_size)
+    )
+    val_sampler = SubsetRandomSampler(torch.arange(0, val_size))
 
     train_loader = DataLoader(
-        dataset=train_dataset, batch_size=batch_size, shuffle=True, num_workers=4
+        dataset=dataset, batch_size=batch_size, num_workers=4, sampler=train_sampler
     )
+    
     val_loader = DataLoader(
-        dataset=val_dataset, batch_size=batch_size, shuffle=False, num_workers=4
+        dataset=dataset,
+        batch_size=batch_size,
+        num_workers=4,
+        sampler=val_sampler,
     )
 
     model = Model()
