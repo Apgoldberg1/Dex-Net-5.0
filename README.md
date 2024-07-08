@@ -13,7 +13,7 @@ Dex-Net 5.0 is an extension of previous work which can be found here:
 View [PyTorch's Getting Started Page](https://pytorch.org/get-started/locally/) for PyTorch installation options
 
 ```
-git clone https://github.com/BerkeleyAutomation/dexnew.git
+git clone https://github.com/Apgoldberg1/Dex-Net-5.0.git
 cd Dex-Net-5.0
 pip install -e .
 ```
